@@ -124,7 +124,6 @@ local KEY_WHITELIST = {
 
 -- Keys bloqueadas (no sirven aunque no hayan caducado)
 local KEY_BLACKLIST = {
-	["RMY5Y9-BWC7"] = true,
 }
 
 local function toB36(n)
