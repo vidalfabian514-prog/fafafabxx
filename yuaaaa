@@ -3787,63 +3787,132 @@ do
 		end
 	end
 
-	-- Daño arriba centro (debajo del tiempo de key)
+	-- Daño estilo golpe (solo número naranja, sin cuadro)
 	local frame = Instance.new("Frame")
-	frame.AnchorPoint = Vector2.new(0.5, 0)
-	frame.Size = UDim2.fromOffset(168, 58)
-	frame.Position = UDim2.new(0.5, 0, 0, 34)
-	frame.BackgroundColor3 = Color3.fromRGB(18, 10, 28)
-	frame.BackgroundTransparency = 0.2
+	frame.AnchorPoint = Vector2.new(0.5, 0.5)
+	frame.Size = UDim2.fromOffset(220, 70)
+	frame.Position = UDim2.new(0.5, 0, 0.42, 0) -- centro de la pantalla (zona marcada)
+	frame.BackgroundTransparency = 1
 	frame.BorderSizePixel = 0
 	frame.Parent = dmgGui
-	Instance.new("UICorner", frame).CornerRadius = UDim.new(0, 10)
-	local st = Instance.new("UIStroke")
-	st.Color = Color3.fromRGB(140, 70, 220)
-	st.Thickness = 1.3
-	st.Parent = frame
-
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, -12, 0, 16)
-	title.Position = UDim2.fromOffset(8, 5)
-	title.BackgroundTransparency = 1
-	title.Text = "DAÑO"
-	title.TextColor3 = Color3.fromRGB(180, 150, 255)
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = 11
-	title.TextXAlignment = Enum.TextXAlignment.Left
-	title.Parent = frame
 
 	local valueLab = Instance.new("TextLabel")
-	valueLab.Size = UDim2.new(1, -12, 0, 26)
-	valueLab.Position = UDim2.fromOffset(8, 20)
+	valueLab.AnchorPoint = Vector2.new(0.5, 0)
+	valueLab.Size = UDim2.new(1, 0, 0, 42)
+	valueLab.Position = UDim2.new(0.5, 0, 0, 0)
 	valueLab.BackgroundTransparency = 1
 	valueLab.Text = "0"
-	valueLab.TextColor3 = Color3.fromRGB(255, 255, 255)
+	valueLab.TextColor3 = Color3.fromRGB(255, 170, 40)
 	valueLab.Font = Enum.Font.GothamBlack
-	valueLab.TextSize = 24
-	valueLab.TextXAlignment = Enum.TextXAlignment.Left
+	valueLab.TextSize = 40
+	valueLab.TextXAlignment = Enum.TextXAlignment.Center
+	valueLab.TextStrokeTransparency = 0.55
+	valueLab.TextStrokeColor3 = Color3.fromRGB(80, 40, 0)
 	valueLab.Parent = frame
+	-- degradado naranja como la foto
+	local grad = Instance.new("UIGradient")
+	grad.Color = ColorSequence.new({
+		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 210, 60)),
+		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 150, 30)),
+		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 20)),
+	})
+	grad.Rotation = 90
+	grad.Parent = valueLab
 
 	local subLab = Instance.new("TextLabel")
-	subLab.Size = UDim2.new(1, -12, 0, 12)
-	subLab.Position = UDim2.fromOffset(8, 44)
+	subLab.AnchorPoint = Vector2.new(0.5, 0)
+	subLab.Size = UDim2.new(1, 0, 0, 18)
+	subLab.Position = UDim2.new(0.5, 0, 0, 44)
 	subLab.BackgroundTransparency = 1
-	subLab.Text = ""
-	subLab.TextColor3 = Color3.fromRGB(160, 160, 170)
-	subLab.Font = Enum.Font.Gotham
-	subLab.TextSize = 10
-	subLab.TextXAlignment = Enum.TextXAlignment.Left
+	subLab.Text = "GOLPE"
+	subLab.TextColor3 = Color3.fromRGB(255, 255, 255)
+	subLab.Font = Enum.Font.GothamBold
+	subLab.TextSize = 14
+	subLab.TextXAlignment = Enum.TextXAlignment.Center
+	subLab.TextStrokeTransparency = 0.5
+	subLab.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
 	subLab.Parent = frame
 
 	local function refreshHUD()
-		valueLab.Text = tostring(math.floor(DamageTotal + 0.5))
-		subLab.Text = LastHitName ~= "" and ("→ " .. LastHitName) or ""
+		local n = math.floor(DamageTotal + 0.5)
+		valueLab.Text = tostring(n)
+		if n <= 0 then
+			subLab.Text = "GOLPE"
+		elseif LastHitName ~= "" then
+			subLab.Text = "GOLPE"
+		else
+			subLab.Text = "GOLPE"
+		end
+		frame.Visible = n > 0
 	end
+	frame.Visible = false
 
 	local function myPos()
 		local c = LocalPlayer.Character
 		local r = c and c:FindFirstChild("HumanoidRootPart")
 		return r and r.Position or nil
+	end
+
+	-- Número naranja flotante encima del enemigo (estilo GOLPE)
+	local function spawnFloatingDamage(character, amount)
+		if not character then return end
+		local hrp = character:FindFirstChild("HumanoidRootPart")
+		local head = character:FindFirstChild("Head")
+		local adornee = head or hrp
+		if not adornee then return end
+
+		local bill = Instance.new("BillboardGui")
+		bill.Name = "FourKT_FloatDmg"
+		bill.Adornee = adornee
+		bill.Size = UDim2.fromOffset(120, 70)
+		bill.StudsOffset = Vector3.new(0, 2.8, 0)
+		bill.AlwaysOnTop = true
+		bill.MaxDistance = 500
+		bill.Parent = dmgGui
+
+		local num = Instance.new("TextLabel")
+		num.Size = UDim2.new(1, 0, 0, 40)
+		num.BackgroundTransparency = 1
+		num.Text = tostring(math.floor(amount + 0.5))
+		num.TextColor3 = Color3.fromRGB(255, 170, 40)
+		num.Font = Enum.Font.GothamBlack
+		num.TextSize = 32
+		num.TextStrokeTransparency = 0.5
+		num.TextStrokeColor3 = Color3.fromRGB(80, 40, 0)
+		num.Parent = bill
+		local g = Instance.new("UIGradient")
+		g.Color = ColorSequence.new({
+			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 210, 60)),
+			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 150, 30)),
+			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 20)),
+		})
+		g.Rotation = 90
+		g.Parent = num
+
+		local gol = Instance.new("TextLabel")
+		gol.Size = UDim2.new(1, 0, 0, 18)
+		gol.Position = UDim2.fromOffset(0, 38)
+		gol.BackgroundTransparency = 1
+		gol.Text = "GOLPE"
+		gol.TextColor3 = Color3.fromRGB(255, 255, 255)
+		gol.Font = Enum.Font.GothamBold
+		gol.TextSize = 13
+		gol.TextStrokeTransparency = 0.45
+		gol.Parent = bill
+
+		task.spawn(function()
+			local t0 = os.clock()
+			local dur = 1.05
+			while os.clock() - t0 < dur do
+				local a = (os.clock() - t0) / dur
+				bill.StudsOffset = Vector3.new(0, 2.8 + a * 2.2, 0)
+				num.TextTransparency = a * 0.9
+				gol.TextTransparency = a * 0.9
+				num.TextStrokeTransparency = 0.5 + a * 0.5
+				task.wait()
+			end
+			pcall(function() bill:Destroy() end)
+		end)
 	end
 
 	local _lastKeyRefresh = 0
@@ -3885,6 +3954,7 @@ do
 							LastHitName = pl.DisplayName or pl.Name
 							LastHitClock = nowc
 							refreshHUD()
+							spawnFloatingDamage(char, dmg)
 						end
 					end
 				end
