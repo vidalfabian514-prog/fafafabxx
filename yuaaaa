@@ -122,6 +122,11 @@ local KEY_WHITELIST = {
 	["Desintegrapopola91"] = true,
 }
 
+-- Keys bloqueadas (no sirven aunque no hayan caducado)
+local KEY_BLACKLIST = {
+	["RMY5Y9-BWC7"] = true,
+}
+
 local function toB36(n)
 	local d = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	n = math.floor(tonumber(n) or 0)
@@ -159,14 +164,46 @@ local function keyChecksum4(exp)
 	return string.upper(c)
 end
 
+local KEY_BIND_FILE = "FourKT_KeyBinds.json"
+
+local function loadKeyBinds()
+	local rf, isf = getReadFile and getReadFile() or readfile, getIsFile and getIsFile() or isfile
+	-- getReadFile defined later; use raw globals
+	rf = readfile or (getgenv and getgenv().readfile)
+	isf = isfile or (getgenv and getgenv().isfile)
+	local wf = writefile or (getgenv and getgenv().writefile)
+	if type(isf) == "function" and type(rf) == "function" and isf(KEY_BIND_FILE) then
+		local ok, data = pcall(function()
+			return HttpService:JSONDecode(rf(KEY_BIND_FILE))
+		end)
+		if ok and type(data) == "table" then return data end
+	end
+	return {}
+end
+
+local function saveKeyBinds(tbl)
+	local wf = writefile or (getgenv and getgenv().writefile)
+	if type(wf) ~= "function" then return false end
+	return pcall(function()
+		wf(KEY_BIND_FILE, HttpService:JSONEncode(tbl))
+	end)
+end
+
 local function validateKey(key)
 	if type(key) ~= "string" then
 		return false, "Key incorrecta"
 	end
 	key = key:gsub("%s+", ""):upper():gsub("4KT%-", "")
+	if KEY_BLACKLIST[key] then
+		return false, "Key bloqueada"
+	end
 	local a, b = key:match("^([0-9A-Z]+)%-([0-9A-Z]+)$")
 	if not a or not b then
 		return false, "Key incorrecta"
+	end
+	local keyIdEarly = a and b and (a .. "-" .. b) or key
+	if KEY_BLACKLIST[keyIdEarly] then
+		return false, "Key bloqueada"
 	end
 	local rel = fromB36(a)
 	if not rel then
@@ -179,11 +216,35 @@ local function validateKey(key)
 	if keyChecksum4(exp) ~= b then
 		return false, "Key incorrecta"
 	end
+
+	-- Vincular key al PRIMER usuario que la use
+	local keyId = a .. "-" .. b
+	local uid = tostring(LocalPlayer.UserId)
+	local binds = loadKeyBinds()
+	local owner = binds[keyId]
+	if owner == nil then
+		binds[keyId] = {
+			userId = uid,
+			name = LocalPlayer.Name,
+			boundAt = os.time(),
+		}
+		saveKeyBinds(binds)
+	elseif tostring(owner) == uid or (type(owner) == "table" and tostring(owner.userId) == uid) then
+		-- mismo usuario: ok
+	else
+		local other = type(owner) == "table" and (owner.name or owner.userId) or tostring(owner)
+		return false, "Key ya usada por otro (" .. tostring(other) .. ")"
+	end
+
 	return true, exp
 end
 
 local function runKeyGate()
 	if KEY_WHITELIST[LocalPlayer.Name] then
+		local genv = (getgenv and getgenv()) or _G
+		genv.FourKT_KeyOK = true
+		genv.FourKT_KeyExp = nil -- permanente / dueño
+		genv.FourKT_KeyPermanent = true
 		return true
 	end
 	local genv = (getgenv and getgenv()) or _G
@@ -275,6 +336,7 @@ local function runKeyGate()
 		if good then
 			genv.FourKT_KeyOK = true
 			genv.FourKT_KeyExp = expOrMsg
+			genv.FourKT_KeyPermanent = false
 			okFinal = true
 			status.Text = "Key válida ✓"
 			status.TextColor3 = Color3.fromRGB(100, 255, 140)
@@ -349,13 +411,13 @@ local Settings = {
 	ItemAuraEnabled = false,
 	HideNameEnabled = false,
 	JumpPowerValue = 60,
-	FOV = 220,
+	FOV = 320,
 	FOVVisible = true,
 	FOVThickness = 5,
-	Smoothness = 0.065,
-	MaxDistance = 800,
+	Smoothness = 0.01,
+	MaxDistance = 1200,
 	AimMode = "Hold",
-	AimStrength = 0.92,
+	AimStrength = 1.0,
 	NameColor = Color3.fromRGB(255, 255, 255),
 	InfoColor = Color3.fromRGB(0, 255, 128),
 	Friends = {},
@@ -1968,26 +2030,23 @@ local function GetClosestPlayer()
 	local center = Camera.ViewportSize / 2
 	local localPos = LocalRoot and LocalRoot.Position or Camera.CFrame.Position
 	local inVehicle = isLocalInVehicle()
-	local stickyMul = inVehicle and 2.9 or 1.6
+	-- Sticky más descarado: se queda pegado al target
+	local stickyMul = inVehicle and 4.5 or 3.2
 
 	if LockedTargetPart and LockedTargetPart.Parent and LockedTargetPlayer and LockedTargetPlayer.Parent then
 		if IsAlive(LockedTargetPlayer) and not IsFriend(LockedTargetPlayer) then
 			local part = GetTargetPart(LockedTargetPlayer.Character) or LockedTargetPart
 			if part and part.Parent then
 				local worldDist = (part.Position - localPos).Magnitude
-				if worldDist <= (Settings.MaxDistance or 800) then
+				if worldDist <= (Settings.MaxDistance or 1200) then
 					local sp, on = Camera:WorldToViewportPoint(part.Position)
 					if sp.Z > 0 then
 						local sd = (Vector2.new(sp.X, sp.Y) - center).Magnitude
-						if on and sd <= Settings.FOV * stickyMul then
+						if sd <= Settings.FOV * stickyMul then
 							LockedTargetPart = part
 							return part, LockedTargetPlayer
 						end
-						if inVehicle and sd <= Settings.FOV * (stickyMul + 0.8) then
-							LockedTargetPart = part
-							return part, LockedTargetPlayer
-						end
-					elseif inVehicle and worldDist < 250 then
+					elseif worldDist < 400 then
 						LockedTargetPart = part
 						return part, LockedTargetPlayer
 					end
@@ -2976,12 +3035,15 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 
 	local goal = CFrame.lookAt(Camera.CFrame.Position, aimPos)
+	-- Aimbot descarado: lock fuerte (casi instantáneo)
+	local smooth = math.clamp(Settings.Smoothness or 0.01, 0.001, 0.4)
+	local strength = math.clamp(Settings.AimStrength or 1, 0.3, 1)
+	local alpha = math.clamp((1 - smooth) * strength, 0.5, 1)
 	if Settings.VehicleAimEnabled and mySitting then
-		Camera.CFrame = goal
+		Camera.CFrame = goal -- carro: snap total
+	elseif alpha >= 0.98 then
+		Camera.CFrame = goal -- pie: snap si fuerza máxima
 	else
-		local smooth = math.clamp(Settings.Smoothness or 0.065, 0.01, 0.4)
-		local strength = math.clamp(Settings.AimStrength or 0.92, 0.3, 1)
-		local alpha = math.clamp((1 - smooth) * strength, 0.15, 0.98)
 		Camera.CFrame = Camera.CFrame:Lerp(goal, alpha)
 	end
 end)
@@ -3645,7 +3707,7 @@ end)
 
 
 ------------------------------------------------------------------
--- CONTADOR DE DAÑO (arriba izquierda)
+-- CONTADOR DE DAÑO (arriba centro) + TIEMPO DE KEY
 ------------------------------------------------------------------
 do
 	local DamageTotal = 0
@@ -3653,6 +3715,7 @@ do
 	local HealthCache = {}
 	local LastHitClock = 0
 	local RESET_AFTER = 8
+	local genv = (getgenv and getgenv()) or _G
 
 	local dmgGui = Instance.new("ScreenGui")
 	dmgGui.Name = "FourKT_DamageHUD"
@@ -3666,9 +3729,69 @@ do
 		pcall(function() dmgGui.Parent = CoreGui end)
 	end
 
+	-- Tiempo de key (arriba centro, encima del daño)
+	local keyFrame = Instance.new("Frame")
+	keyFrame.AnchorPoint = Vector2.new(0.5, 0)
+	keyFrame.Size = UDim2.fromOffset(200, 22)
+	keyFrame.Position = UDim2.new(0.5, 0, 0, 8)
+	keyFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 28)
+	keyFrame.BackgroundTransparency = 0.25
+	keyFrame.BorderSizePixel = 0
+	keyFrame.Parent = dmgGui
+	Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0, 8)
+	local keyStroke = Instance.new("UIStroke")
+	keyStroke.Color = Color3.fromRGB(140, 70, 220)
+	keyStroke.Thickness = 1
+	keyStroke.Parent = keyFrame
+
+	local keyLab = Instance.new("TextLabel")
+	keyLab.Size = UDim2.fromScale(1, 1)
+	keyLab.BackgroundTransparency = 1
+	keyLab.Text = "KEY: ..."
+	keyLab.TextColor3 = Color3.fromRGB(200, 180, 255)
+	keyLab.Font = Enum.Font.GothamBold
+	keyLab.TextSize = 12
+	keyLab.Parent = keyFrame
+
+	local function formatRemain(sec)
+		if sec <= 0 then return "EXPIRADA" end
+		local d = math.floor(sec / 86400)
+		local h = math.floor((sec % 86400) / 3600)
+		local m = math.floor((sec % 3600) / 60)
+		local s = math.floor(sec % 60)
+		if d > 30 then return "PERMANENTE" end
+		if d > 0 then return string.format("%dd %02dh %02dm", d, h, m) end
+		if h > 0 then return string.format("%02dh %02dm %02ds", h, m, s) end
+		return string.format("%02dm %02ds", m, s)
+	end
+
+	local function refreshKeyTime()
+		if genv.FourKT_KeyPermanent then
+			keyLab.Text = "KEY: PERMANENTE"
+			keyLab.TextColor3 = Color3.fromRGB(120, 255, 160)
+			return
+		end
+		local exp = genv.FourKT_KeyExp
+		if type(exp) ~= "number" then
+			keyLab.Text = "KEY: --"
+			return
+		end
+		local left = exp - os.time()
+		keyLab.Text = "KEY: " .. formatRemain(left)
+		if left <= 0 then
+			keyLab.TextColor3 = Color3.fromRGB(255, 80, 80)
+		elseif left < 300 then
+			keyLab.TextColor3 = Color3.fromRGB(255, 180, 80)
+		else
+			keyLab.TextColor3 = Color3.fromRGB(200, 180, 255)
+		end
+	end
+
+	-- Daño arriba centro (debajo del tiempo de key)
 	local frame = Instance.new("Frame")
+	frame.AnchorPoint = Vector2.new(0.5, 0)
 	frame.Size = UDim2.fromOffset(168, 58)
-	frame.Position = UDim2.fromOffset(12, 12) -- arriba izquierda
+	frame.Position = UDim2.new(0.5, 0, 0, 34)
 	frame.BackgroundColor3 = Color3.fromRGB(18, 10, 28)
 	frame.BackgroundTransparency = 0.2
 	frame.BorderSizePixel = 0
@@ -3723,8 +3846,15 @@ do
 		return r and r.Position or nil
 	end
 
+	local _lastKeyRefresh = 0
 	RunService.Heartbeat:Connect(function()
-		if DamageTotal > 0 and (os.clock() - LastHitClock) > RESET_AFTER then
+		local nowc = os.clock()
+		if nowc - _lastKeyRefresh >= 1 then
+			_lastKeyRefresh = nowc
+			refreshKeyTime()
+		end
+
+		if DamageTotal > 0 and (nowc - LastHitClock) > RESET_AFTER then
 			DamageTotal = 0
 			LastHitName = ""
 			refreshHUD()
@@ -3749,18 +3879,12 @@ do
 					if origin then
 						near = (hrp.Position - origin).Magnitude < 450
 					end
-					local focused = (LockedTargetPlayer == pl) or isAimActive()
-					if near and (focused or isAimActive() or LockedTargetPlayer == nil) then
-						-- si hay lock a otro, solo cuenta si es el target
-						if LockedTargetPlayer and LockedTargetPlayer ~= pl and not isAimActive() then
-							-- skip
-						else
-							if (not LockedTargetPlayer) or (LockedTargetPlayer == pl) or isAimActive() then
-								DamageTotal += dmg
-								LastHitName = pl.DisplayName or pl.Name
-								LastHitClock = os.clock()
-								refreshHUD()
-							end
+					if near and ((LockedTargetPlayer == pl) or isAimActive() or (not LockedTargetPlayer)) then
+						if (not LockedTargetPlayer) or (LockedTargetPlayer == pl) or isAimActive() then
+							DamageTotal += dmg
+							LastHitName = pl.DisplayName or pl.Name
+							LastHitClock = nowc
+							refreshHUD()
 						end
 					end
 				end
@@ -3772,6 +3896,8 @@ do
 	Players.PlayerRemoving:Connect(function(pl)
 		HealthCache[pl] = nil
 	end)
+
+	refreshKeyTime()
 end
 
 print("[4KT] predicción al piso lista")
