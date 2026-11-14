@@ -9,6 +9,7 @@
 task.spawn(function()
 	local Players = game:GetService("Players")
 	local TweenService = game:GetService("TweenService")
+local SoundService = game:GetService("SoundService")
 	local LocalPlayer = Players.LocalPlayer
 
 	local gui = Instance.new("ScreenGui")
@@ -388,6 +389,19 @@ local MENU_THEMES = {
 local menuThemeIndex = 1
 local MenuThemeBtn = nil
 
+local MENU_FONTS = {
+	{ Name = "NORMAL", Font = Enum.Font.GothamBold },
+	{ Name = "SUAVE", Font = Enum.Font.Gotham },
+	{ Name = "NEGRO", Font = Enum.Font.GothamBlack },
+	{ Name = "CÓDIGO", Font = Enum.Font.Code },
+	{ Name = "PIXEL", Font = Enum.Font.Arcade },
+	{ Name = "REDONDA", Font = Enum.Font.FredokaOne },
+	{ Name = "CLÁSICA", Font = Enum.Font.SourceSansBold },
+	{ Name = "OSWALD", Font = Enum.Font.Oswald },
+}
+local menuFontIndex = 1
+local MenuFontBtn = nil
+
 local Settings = {
 	ESPEnabled = true,
 	TracersEnabled = true,
@@ -432,6 +446,7 @@ local Settings = {
 	MacroKey = Enum.KeyCode.M,
 	ChamsColorIndex = 4,
 	MenuThemeIndex = 1,
+	MenuFontIndex = 1,
 	ScreenScale = 1.0,
 	MenuMinW = 260,
 	MenuMinH = 220,
@@ -593,6 +608,7 @@ local function SaveConfig(silent)
 		AimStrength = Settings.AimStrength,
 		ChamsColorIndex = chamsColorIndex,
 		MenuThemeIndex = menuThemeIndex,
+		MenuFontIndex = menuFontIndex,
 		ScreenScale = Settings.ScreenScale,
 		MenuMaxW = Settings.MenuMaxW,
 		MenuMaxH = Settings.MenuMaxH,
@@ -675,6 +691,9 @@ local function LoadConfig()
 		end
 		if type(result.MenuThemeIndex) == "number" then
 			menuThemeIndex = math.clamp(math.floor(result.MenuThemeIndex), 1, #MENU_THEMES)
+		end
+		if type(result.MenuFontIndex) == "number" then
+			menuFontIndex = math.clamp(math.floor(result.MenuFontIndex), 1, #MENU_FONTS)
 		end
 		Settings.ScreenScale = 1
 		if type(result.MenuMaxW) == "number" then Settings.MenuMaxW = result.MenuMaxW end
@@ -928,7 +947,7 @@ local function CreateBtn(parent, text, y, color, callback)
 	btn.BorderSizePixel = 0
 	btn.Text = text
 	btn.TextColor3 = Color3.fromRGB(245, 245, 250)
-	btn.Font = Enum.Font.GothamBold
+	btn.Font = (getMenuFont and getMenuFont().Font) or Enum.Font.GothamBold
 	btn.TextSize = 14
 	btn.TextWrapped = false
 	btn.AutoButtonColor = false
@@ -975,6 +994,27 @@ local function applyMenuTheme()
 	end
 end
 
+local function getMenuFont()
+	local i = math.clamp(menuFontIndex or 1, 1, #MENU_FONTS)
+	return MENU_FONTS[i]
+end
+
+local function applyMenuFont()
+	local f = getMenuFont().Font
+	for _, panel in ipairs({FullPanel, AimPanel, FriendsPanel, InfoPanel, EspPanel}) do
+		if panel then
+			for _, c in ipairs(panel:GetDescendants()) do
+				if c:IsA("TextLabel") or c:IsA("TextButton") or c:IsA("TextBox") then
+					pcall(function() c.Font = f end)
+				end
+			end
+		end
+	end
+	if MenuFontBtn then
+		MenuFontBtn.Text = "LETRA MENÚ: " .. getMenuFont().Name
+	end
+end
+
 local function makePanel(sizeY)
 	local width = 360
 	local th = getMenuTheme()
@@ -996,8 +1036,26 @@ local function makePanel(sizeY)
 	return p
 end
 
+local function playMenuSound()
+	pcall(function()
+		local s = Instance.new("Sound")
+		s.SoundId = "rbxassetid://6895079853" -- click UI suave
+		s.Volume = 0.55
+		s.PlaybackSpeed = 1.05
+		s.Parent = SoundService
+		s:Play()
+		s.Ended:Connect(function()
+			pcall(function() s:Destroy() end)
+		end)
+		task.delay(2, function()
+			pcall(function() if s then s:Destroy() end end)
+		end)
+	end)
+end
+
 local function openPanel(panel)
 	if not panel then return end
+	playMenuSound()
 	if panel ~= FullPanel and FullPanel then FullPanel.Visible = false end
 	if panel ~= AimPanel and AimPanel then AimPanel.Visible = false end
 	if panel ~= FriendsPanel and FriendsPanel then FriendsPanel.Visible = false end
@@ -1083,7 +1141,7 @@ local function makeTitle(parent, text)
 	t.BorderSizePixel = 0
 	t.Text = "  " .. text
 	t.TextColor3 = getMenuTheme().Title
-	t.Font = Enum.Font.GothamBold
+	t.Font = getMenuFont().Font
 	t.TextSize = 14
 	t.TextXAlignment = Enum.TextXAlignment.Left
 	t.ZIndex = 5
@@ -1171,7 +1229,7 @@ end
 ------------------------------------------------------------------
 -- G = Teclas
 ------------------------------------------------------------------
-FullPanel = makePanel(540)
+FullPanel = makePanel(580)
 makeTitle(FullPanel, "4KT SCRIPT — Teclas (G)")
 
 CreateBtn(FullPanel, "Nombre Blanco", 52, Color3.fromRGB(50, 50, 56), function()
@@ -1229,7 +1287,13 @@ MenuThemeBtn = CreateBtn(FullPanel, "COLOR MENÚ: " .. getMenuTheme().Name, 452,
 	applyMenuTheme()
 	SaveConfig(true)
 end)
-CreateBtn(FullPanel, "💾 Guardar Config", 492, Color3.fromRGB(48, 48, 54), function() SaveConfig(false) end)
+MenuFontBtn = CreateBtn(FullPanel, "LETRA MENÚ: " .. getMenuFont().Name, 492, Color3.fromRGB(50, 40, 70), function()
+	menuFontIndex = (menuFontIndex % #MENU_FONTS) + 1
+	Settings.MenuFontIndex = menuFontIndex
+	applyMenuFont()
+	SaveConfig(true)
+end)
+CreateBtn(FullPanel, "💾 Guardar Config", 532, Color3.fromRGB(48, 48, 54), function() SaveConfig(false) end)
 
 ------------------------------------------------------------------
 -- P = Aimbot (Tiempo de Alternar + Super Jump)
@@ -1320,7 +1384,16 @@ ChamsColorBtn2 = CreateBtn(EspPanel, "COLOR DE CHAMS: " .. CHAMS_COLORS[chamsCol
 	SaveConfig(true)
 end)
 refreshChamsColorUI()
-toggleBtn(EspPanel, 208, "Informacion", "INFO Armas : ON", "INFO Armas : OFF", onC, offC)
+toggleBtn(EspPanel, 208, "Informacion", "ESP Letras : ON", "ESP Letras : OFF", onC, offC, function()
+	SaveConfig(true)
+	if not Settings.Informacion then
+		for _, g in pairs(ESPObjects) do
+			if g and g.NameTag then pcall(function() g.NameTag.Visible = false end) end
+			if g and g.Item1 then pcall(function() g.Item1.Visible = false end) end
+			if g and g.Item2 then pcall(function() g.Item2.Visible = false end) end
+		end
+	end
+end)
 toggleBtn(EspPanel, 248, "WeaponIconESP", "Icono Arma : ON", "Icono Arma : OFF", onC, offC, function()
 	SaveConfig(true)
 end)
@@ -1724,6 +1797,7 @@ makeResizable(FriendsPanel)
 makeResizable(InfoPanel)
 makeResizable(EspPanel)
 pcall(applyMenuTheme)
+pcall(applyMenuFont)
 
 ------------------------------------------------------------------
 -- SELECTOR PC / CELULAR + MENÚS FLOTANTES (móvil)
@@ -2874,7 +2948,7 @@ local function UpdateESP()
 						gui.NameTag.Text = string.format("%s [%d/%d]", player.DisplayName or player.Name, math.floor(hum.Health), math.floor(hum.MaxHealth))
 						gui.NameTag.Position = Vector2.new(feetPt.X, feetPt.Y + 4)
 						gui.NameTag.Color = friend and Color3.fromRGB(40,255,80) or Settings.NameColor
-						gui.NameTag.Visible = true
+						gui.NameTag.Visible = (Settings.Informacion == true)
 						if gui.Back then
 							gui.Back.Size = Vector2.new(3, boxSize.Y)
 							gui.Back.Position = Vector2.new(boxPos.X - 6, boxPos.Y)
@@ -2893,7 +2967,7 @@ local function UpdateESP()
 						gui.NameTag.Text = string.format("%s [%d/%d]", player.DisplayName or player.Name, math.floor(hum.Health), math.floor(hum.MaxHealth))
 						gui.NameTag.Position = Vector2.new(feetPt.X, feetPt.Y + 4)
 						gui.NameTag.Color = friend and Color3.fromRGB(40,255,80) or Settings.NameColor
-						gui.NameTag.Visible = true
+						gui.NameTag.Visible = (Settings.Informacion == true)
 						local barW = math.clamp(48 * (scale / 20), 36, 70)
 						local barH = 4
 						if gui.Back then
@@ -3713,7 +3787,7 @@ do
 	local LastHitName = ""
 	local HealthCache = {}
 	local LastHitClock = 0
-	local RESET_AFTER = 8
+	local RESET_AFTER = 2.5
 	local genv = (getgenv and getgenv()) or _G
 
 	local dmgGui = Instance.new("ScreenGui")
@@ -3901,10 +3975,10 @@ do
 
 		task.spawn(function()
 			local t0 = os.clock()
-			local dur = 1.05
+			local dur = 0.45
 			while os.clock() - t0 < dur do
 				local a = (os.clock() - t0) / dur
-				bill.StudsOffset = Vector3.new(0, 2.8 + a * 2.2, 0)
+				bill.StudsOffset = Vector3.new(0, 2.8 + a * 1.2, 0)
 				num.TextTransparency = a * 0.9
 				gol.TextTransparency = a * 0.9
 				num.TextStrokeTransparency = 0.5 + a * 0.5
@@ -3943,18 +4017,30 @@ do
 			if prev and hp < prev then
 				local dmg = prev - hp
 				if dmg > 0.5 and dmg < 800 then
-					local near = true
-					if origin then
-						near = (hrp.Position - origin).Magnitude < 450
-					end
-					if near and ((LockedTargetPlayer == pl) or isAimActive() or (not LockedTargetPlayer)) then
-						if (not LockedTargetPlayer) or (LockedTargetPlayer == pl) or isAimActive() then
-							DamageTotal += dmg
-							LastHitName = pl.DisplayName or pl.Name
-							LastHitClock = nowc
-							refreshHUD()
-							spawnFloatingDamage(char, dmg)
+					-- Solo daño que haces TÚ: aim activo + ese es tu target (o único en mira)
+					local myDamage = false
+					if isAimActive() and LockedTargetPlayer == pl then
+						myDamage = true
+					elseif isAimActive() and not LockedTargetPlayer then
+						-- sin lock sticky: solo si está cerca del centro del FOV
+						local center = Camera.ViewportSize / 2
+						local sp, on = Camera:WorldToViewportPoint(hrp.Position)
+						if on and sp.Z > 0 then
+							local sd = (Vector2.new(sp.X, sp.Y) - center).Magnitude
+							if sd <= (Settings.FOV or 200) * 0.85 then
+								local dist = origin and (hrp.Position - origin).Magnitude or 999
+								if dist < 350 then
+									myDamage = true
+								end
+							end
 						end
+					end
+					if myDamage then
+						DamageTotal += dmg
+						LastHitName = pl.DisplayName or pl.Name
+						LastHitClock = nowc
+						refreshHUD()
+						spawnFloatingDamage(char, dmg)
 					end
 				end
 			end
