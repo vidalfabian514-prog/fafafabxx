@@ -839,6 +839,7 @@ end
 
 local ESPObjects, TracerObjects, HighlightObjects = {}, {}, {}
 local AimbotHolding, AimbotEnabled, LocalRoot = false, false, nil
+local StickyAimOn = false -- mira pegada hasta volver a pulsar aim
 local LockedTargetPart, LockedTargetPlayer = nil, nil
 local LastChamsUpdate, CHAMS_INTERVAL = 0, 0.04
 local AlternateTimer, AimAtHead = 0, true
@@ -851,7 +852,8 @@ local UpdateChams
 local function isAimActive()
 	if Settings.AimMode == "Always" then return true end
 	if Settings.AimMode == "Toggle" then return AimbotEnabled end
-	return AimbotHolding
+	-- Hold: se queda pegado al enemigo hasta pulsar aim otra vez
+	return StickyAimOn or AimbotHolding
 end
 
 local function safeDrawing(className)
@@ -1038,18 +1040,32 @@ end
 
 local function playMenuSound()
 	pcall(function()
-		local s = Instance.new("Sound")
-		s.SoundId = "rbxassetid://6895079853" -- click UI suave
-		s.Volume = 0.55
-		s.PlaybackSpeed = 1.05
-		s.Parent = SoundService
-		s:Play()
-		s.Ended:Connect(function()
-			pcall(function() s:Destroy() end)
-		end)
-		task.delay(2, function()
-			pcall(function() if s then s:Destroy() end end)
-		end)
+		local ids = {
+			"rbxassetid://6895079853",
+			"rbxassetid://9118823101",
+			"rbxassetid://1562100972",
+			"rbxasset://sounds/electronicpingshort.wav",
+		}
+		local parent = LocalPlayer:FindFirstChild("PlayerGui") or game:GetService("SoundService")
+		for _, id in ipairs(ids) do
+			local ok = pcall(function()
+				local s = Instance.new("Sound")
+				s.Name = "FourKT_MenuClick"
+				s.SoundId = id
+				s.Volume = 0.8
+				s.PlaybackSpeed = 1.1
+				s.Parent = parent
+				if typeof(SoundService.PlayLocalSound) == "function" then
+					SoundService:PlayLocalSound(s)
+				else
+					s:Play()
+				end
+				task.delay(1.2, function()
+					pcall(function() s:Destroy() end)
+				end)
+			end)
+			if ok then break end
+		end
 	end)
 end
 
@@ -1306,6 +1322,7 @@ AimModeBtn = CreateBtn(AimPanel, "Modo Aimbot: " .. (AIM_MODE_LABELS[Settings.Ai
 	for i, m in ipairs(AIM_MODES) do if m == Settings.AimMode then idx = i break end end
 	Settings.AimMode = AIM_MODES[(idx % #AIM_MODES) + 1]
 	AimbotHolding = false
+	StickyAimOn = false
 	AimbotEnabled = (Settings.AimMode == "Always")
 	LockedTargetPart, LockedTargetPlayer = nil, nil
 	AimModeBtn.Text = "Modo Aimbot: " .. (AIM_MODE_LABELS[Settings.AimMode] or Settings.AimMode)
@@ -2103,8 +2120,8 @@ local function GetClosestPlayer()
 	local center = Camera.ViewportSize / 2
 	local localPos = LocalRoot and LocalRoot.Position or Camera.CFrame.Position
 	local inVehicle = isLocalInVehicle()
-	-- Sticky más descarado: se queda pegado al target
-	local stickyMul = inVehicle and 4.5 or 3.2
+	-- Sticky: mira no se despega hasta soltar aim
+	local stickyMul = (StickyAimOn and 99) or (inVehicle and 4.5 or 3.2)
 
 	if LockedTargetPart and LockedTargetPart.Parent and LockedTargetPlayer and LockedTargetPlayer.Parent then
 		if IsAlive(LockedTargetPlayer) and not IsFriend(LockedTargetPlayer) then
@@ -3153,9 +3170,15 @@ UserInputService.InputBegan:Connect(function(input, gpe)
 	if gpe then return end
 	if input.KeyCode == Settings.AimKey then
 		if Settings.AimMode == "Hold" then
-			AimbotHolding = true
+			-- 1er toque: pega mira | 2º toque: suelta
+			StickyAimOn = not StickyAimOn
+			AimbotHolding = StickyAimOn
+			if not StickyAimOn then
+				LockedTargetPart, LockedTargetPlayer = nil, nil
+			end
 		elseif Settings.AimMode == "Toggle" then
 			AimbotEnabled = not AimbotEnabled
+			StickyAimOn = AimbotEnabled
 			if not AimbotEnabled then LockedTargetPart, LockedTargetPlayer = nil, nil end
 		end
 	elseif input.KeyCode == Settings.MacroKey then
@@ -3218,8 +3241,8 @@ end)
 
 UserInputService.InputEnded:Connect(function(input)
 	if input.KeyCode == Settings.AimKey and Settings.AimMode == "Hold" then
-		AimbotHolding = false
-		LockedTargetPart, LockedTargetPlayer = nil, nil
+		-- No soltar target al dejar de mantener: solo se suelta al pulsar aim otra vez
+		AimbotHolding = StickyAimOn
 	end
 end)
 
