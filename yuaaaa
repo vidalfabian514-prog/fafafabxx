@@ -167,17 +167,15 @@ end
 local KEY_BIND_FILE = "FourKT_KeyBinds.json"
 
 local function loadKeyBinds()
-	local rf, isf = getReadFile and getReadFile() or readfile, getIsFile and getIsFile() or isfile
-	-- getReadFile defined later; use raw globals
-	rf = readfile or (getgenv and getgenv().readfile)
-	isf = isfile or (getgenv and getgenv().isfile)
-	local wf = writefile or (getgenv and getgenv().writefile)
-	if type(isf) == "function" and type(rf) == "function" and isf(KEY_BIND_FILE) then
-		local ok, data = pcall(function()
+	local ok, data = pcall(function()
+		local rf = readfile or (getgenv and getgenv().readfile)
+		local isf = isfile or (getgenv and getgenv().isfile)
+		if type(isf) == "function" and type(rf) == "function" and isf(KEY_BIND_FILE) then
 			return HttpService:JSONDecode(rf(KEY_BIND_FILE))
-		end)
-		if ok and type(data) == "table" then return data end
-	end
+		end
+		return {}
+	end)
+	if ok and type(data) == "table" then return data end
 	return {}
 end
 
@@ -379,12 +377,12 @@ local ChamsColorBtn2
 
 -- Temas de menú (G elige color)
 local MENU_THEMES = {
-	{ Name = "MORADO", Bg = Color3.fromRGB(22, 12, 32), Stroke = Color3.fromRGB(140, 70, 220), Accent = Color3.fromRGB(160, 80, 255), Btn = Color3.fromRGB(40, 22, 58), Title = Color3.fromRGB(220, 180, 255) },
-	{ Name = "AZUL",   Bg = Color3.fromRGB(12, 16, 28), Stroke = Color3.fromRGB(50, 120, 220), Accent = Color3.fromRGB(60, 140, 255), Btn = Color3.fromRGB(22, 30, 48), Title = Color3.fromRGB(160, 200, 255) },
-	{ Name = "ROJO",   Bg = Color3.fromRGB(28, 12, 14), Stroke = Color3.fromRGB(200, 60, 70), Accent = Color3.fromRGB(255, 70, 80), Btn = Color3.fromRGB(48, 22, 24), Title = Color3.fromRGB(255, 170, 170) },
-	{ Name = "VERDE",  Bg = Color3.fromRGB(12, 24, 16), Stroke = Color3.fromRGB(50, 180, 90), Accent = Color3.fromRGB(60, 220, 100), Btn = Color3.fromRGB(20, 40, 26), Title = Color3.fromRGB(160, 255, 180) },
-	{ Name = "NEGRO",  Bg = Color3.fromRGB(12, 12, 14), Stroke = Color3.fromRGB(70, 70, 78), Accent = Color3.fromRGB(180, 180, 190), Btn = Color3.fromRGB(28, 28, 32), Title = Color3.fromRGB(230, 230, 235) },
-	{ Name = "ROSA",   Bg = Color3.fromRGB(28, 12, 24), Stroke = Color3.fromRGB(220, 80, 160), Accent = Color3.fromRGB(255, 100, 180), Btn = Color3.fromRGB(48, 22, 40), Title = Color3.fromRGB(255, 180, 220) },
+	{ Name = "JCM VERDE", Bg = Color3.fromRGB(6, 12, 8), Stroke = Color3.fromRGB(40, 220, 120), Accent = Color3.fromRGB(60, 255, 140), Btn = Color3.fromRGB(10, 18, 12), Title = Color3.fromRGB(80, 255, 160), Text = Color3.fromRGB(120, 255, 180) },
+	{ Name = "AZUL",   Bg = Color3.fromRGB(6, 12, 22), Stroke = Color3.fromRGB(50, 150, 255), Accent = Color3.fromRGB(70, 170, 255), Btn = Color3.fromRGB(10, 18, 32), Title = Color3.fromRGB(120, 200, 255), Text = Color3.fromRGB(160, 210, 255) },
+	{ Name = "MORADO", Bg = Color3.fromRGB(14, 8, 22), Stroke = Color3.fromRGB(160, 80, 255), Accent = Color3.fromRGB(180, 100, 255), Btn = Color3.fromRGB(22, 14, 34), Title = Color3.fromRGB(220, 180, 255), Text = Color3.fromRGB(210, 190, 255) },
+	{ Name = "ROJO",   Bg = Color3.fromRGB(18, 8, 8), Stroke = Color3.fromRGB(220, 60, 70), Accent = Color3.fromRGB(255, 80, 90), Btn = Color3.fromRGB(28, 12, 12), Title = Color3.fromRGB(255, 150, 150), Text = Color3.fromRGB(255, 180, 180) },
+	{ Name = "NEGRO",  Bg = Color3.fromRGB(10, 10, 12), Stroke = Color3.fromRGB(90, 90, 100), Accent = Color3.fromRGB(200, 200, 210), Btn = Color3.fromRGB(18, 18, 22), Title = Color3.fromRGB(230, 230, 235), Text = Color3.fromRGB(220, 220, 225) },
+	{ Name = "ROSA",   Bg = Color3.fromRGB(18, 8, 16), Stroke = Color3.fromRGB(240, 80, 170), Accent = Color3.fromRGB(255, 100, 190), Btn = Color3.fromRGB(28, 12, 24), Title = Color3.fromRGB(255, 180, 220), Text = Color3.fromRGB(255, 200, 230) },
 }
 local menuThemeIndex = 1
 local MenuThemeBtn = nil
@@ -394,10 +392,10 @@ local MENU_FONTS = {
 	{ Name = "SUAVE", Font = Enum.Font.Gotham },
 	{ Name = "NEGRO", Font = Enum.Font.GothamBlack },
 	{ Name = "CÓDIGO", Font = Enum.Font.Code },
-	{ Name = "PIXEL", Font = Enum.Font.Arcade },
-	{ Name = "REDONDA", Font = Enum.Font.FredokaOne },
 	{ Name = "CLÁSICA", Font = Enum.Font.SourceSansBold },
-	{ Name = "OSWALD", Font = Enum.Font.Oswald },
+	{ Name = "GROTESK", Font = Enum.Font.SourceSans },
+	{ Name = "LEGACY", Font = Enum.Font.Legacy },
+	{ Name = "UBUNTU", Font = Enum.Font.Ubuntu },
 }
 local menuFontIndex = 1
 local MenuFontBtn = nil
@@ -424,13 +422,16 @@ local Settings = {
 	ItemAuraEnabled = false,
 	HideNameEnabled = false,
 	JumpPowerValue = 60,
-	FOV = 320,
+	FOV = 2000,
 	FOVVisible = true,
 	FOVThickness = 5,
-	Smoothness = 0.01,
-	MaxDistance = 1200,
+	Smoothness = 0,
+	MaxDistance = 5000,
 	AimMode = "Hold",
 	AimStrength = 1.0,
+	AggroIndex = 4,
+	HardSnap = true,
+	Humanize = 0.1,
 	NameColor = Color3.fromRGB(255, 255, 255),
 	InfoColor = Color3.fromRGB(0, 255, 128),
 	Friends = {},
@@ -606,6 +607,9 @@ local function SaveConfig(silent)
 		MaxDistance = Settings.MaxDistance,
 		AimMode = Settings.AimMode,
 		AimStrength = Settings.AimStrength,
+		AggroIndex = aggroIndex,
+		HardSnap = Settings.HardSnap,
+		Humanize = Settings.Humanize,
 		ChamsColorIndex = chamsColorIndex,
 		MenuThemeIndex = menuThemeIndex,
 		MenuFontIndex = menuFontIndex,
@@ -679,6 +683,11 @@ local function LoadConfig()
 			Settings.AimMode = result.AimMode
 		end
 		if type(result.AimStrength) == "number" then Settings.AimStrength = math.clamp(result.AimStrength, 0.3, 1) end
+		if type(result.AggroIndex) == "number" then
+			aggroIndex = math.clamp(math.floor(result.AggroIndex), 1, #AGGRO_LEVELS)
+		end
+		if result.HardSnap ~= nil then Settings.HardSnap = result.HardSnap end
+		if type(result.Humanize) == "number" then Settings.Humanize = math.clamp(result.Humanize, 0, 1) end
 		Settings.FullMenuKey = resolveKey(result.FullMenuKey, Enum.KeyCode.G)
 		Settings.AimMenuKey = resolveKey(result.AimMenuKey, Enum.KeyCode.P)
 		Settings.FriendsKey = resolveKey(result.FriendsKey, Enum.KeyCode.U)
@@ -847,6 +856,15 @@ local lastInfoUpdate, infoUpdateInterval = 0, 0
 local AIM_MODES = {"Hold", "Toggle", "Always"}
 local AIM_MODE_LABELS = { Hold = "MANTENER", Toggle = "TOGGLE", Always = "SIEMPRE" }
 local AimModeBtn
+
+local AGGRO_LEVELS = {
+	{ Name = "SUAVE",  FOV = 140, Smooth = 0.18, Strength = 0.65, MaxDist = 600,  HardSnap = false },
+	{ Name = "NORMAL", FOV = 220, Smooth = 0.08, Strength = 0.85, MaxDist = 1000, HardSnap = false },
+	{ Name = "FUERTE", FOV = 400, Smooth = 0.02, Strength = 1.00, MaxDist = 1800, HardSnap = true },
+	{ Name = "RAGE",   FOV = 2000, Smooth = 0.00, Strength = 1.00, MaxDist = 5000, HardSnap = true },
+}
+local aggroIndex = 4 -- por defecto RAGE (lo último que pediste)
+local AggroLabelBtn
 local UpdateChams
 
 local function isAimActive()
@@ -896,59 +914,18 @@ UIScale.Parent = ScreenGui
 Settings.ScreenScale = 1
 
 local function addSnow(panel)
-	local folder = Instance.new("Folder")
-	folder.Name = "Snow"
-	folder.Parent = panel
-	panel.ClipsDescendants = true
-	local flakes = {}
-	for i = 1, 36 do
-		local f = Instance.new("TextLabel")
-		f.BackgroundTransparency = 1
-		f.Size = UDim2.fromOffset(math.random(12,20), math.random(12,20))
-		f.Position = UDim2.fromOffset(math.random(0,320), math.random(-30,-5))
-		f.Text = math.random(1,2) == 1 and "❄" or "✦"
-		f.TextColor3 = Color3.fromRGB(255, 255, 255)
-		f.TextTransparency = math.random(0,18)/100
-		f.TextSize = math.random(13,20)
-		f.Font = Enum.Font.GothamBold
-		f.ZIndex = 3
-		f.Parent = folder
-		table.insert(flakes, {Label=f, Speed=math.random(25,60)/100, Drift=math.random(-14,14)/100, Y=f.Position.Y.Offset, X=f.Position.X.Offset})
-	end
-	local watermark = Instance.new("TextLabel")
-	watermark.Name = "Watermark"
-	watermark.Size = UDim2.new(1, 0, 0, 36)
-	watermark.Position = UDim2.new(0, 0, 0.5, -18)
-	watermark.BackgroundTransparency = 1
-	watermark.Text = "4KT ON TOP"
-	watermark.TextColor3 = Color3.fromRGB(255, 255, 255)
-	watermark.TextTransparency = 0.25
-	watermark.Font = Enum.Font.GothamBlack
-	watermark.TextSize = 22
-	watermark.ZIndex = 2
-	watermark.Parent = panel
-
-	RunService.RenderStepped:Connect(function(dt)
-		if not panel.Visible then return end
-		for _, s in ipairs(flakes) do
-			s.Y = s.Y + s.Speed * 60 * dt
-			s.X = s.X + s.Drift * 25 * dt
-			if s.Y > panel.AbsoluteSize.Y + 20 then s.Y = math.random(-30,-5) s.X = math.random(0,320) end
-			if s.X < -10 then s.X = 330 end
-			if s.X > 340 then s.X = -10 end
-			s.Label.Position = UDim2.fromOffset(s.X, s.Y)
-		end
-	end)
+	-- desactivado (ahorra locals)
 end
 
 local function CreateBtn(parent, text, y, color, callback)
 	local btn = Instance.new("TextButton")
-	btn.Size = UDim2.new(1, -16, 0, 44)
+	btn.Size = UDim2.new(1, -16, 0, 40)
 	btn.Position = UDim2.fromOffset(10, y)
-	btn.BackgroundColor3 = color
+	local th = (getMenuTheme and getMenuTheme()) or { Btn = Color3.fromRGB(20,20,24), Text = Color3.fromRGB(220,220,220), Title = Color3.fromRGB(255,255,255) }
+	btn.BackgroundColor3 = color or th.Btn
 	btn.BorderSizePixel = 0
 	btn.Text = text
-	btn.TextColor3 = Color3.fromRGB(245, 245, 250)
+	btn.TextColor3 = th.Text or th.Title or Color3.fromRGB(200, 255, 210)
 	btn.Font = (getMenuFont and getMenuFont().Font) or Enum.Font.GothamBold
 	btn.TextSize = 14
 	btn.TextWrapped = false
@@ -978,14 +955,33 @@ end
 
 local function applyMenuTheme()
 	local th = getMenuTheme()
+	local textCol = th.Text or th.Title
 	for _, panel in ipairs({FullPanel, AimPanel, FriendsPanel, InfoPanel, EspPanel}) do
 		if panel then
 			panel.BackgroundColor3 = th.Bg
 			local st = panel:FindFirstChildOfClass("UIStroke")
-			if st then st.Color = th.Stroke end
+			if st then
+				st.Color = th.Stroke
+				st.Thickness = 2
+			end
 			for _, c in ipairs(panel:GetDescendants()) do
-				if c:IsA("TextLabel") and c.Name == "Title" then
-					c.TextColor3 = th.Title
+				if c:IsA("TextLabel") then
+					if c.Name == "Title" then
+						c.TextColor3 = th.Title
+						c.BackgroundColor3 = th.Accent
+						c.BackgroundTransparency = 0.15
+					else
+						c.TextColor3 = textCol
+					end
+				elseif c:IsA("TextButton") and c.Name ~= "ResizeHandle" then
+					-- filas estilo JCM
+					if not c:GetAttribute("KeepColor") then
+						c.BackgroundColor3 = th.Btn
+						c.TextColor3 = textCol
+					end
+				elseif c:IsA("TextBox") then
+					c.BackgroundColor3 = th.Btn
+					c.TextColor3 = textCol
 				end
 			end
 		end
@@ -993,6 +989,11 @@ local function applyMenuTheme()
 	if MenuThemeBtn then
 		MenuThemeBtn.Text = "COLOR MENÚ: " .. th.Name
 		MenuThemeBtn.BackgroundColor3 = th.Accent
+		MenuThemeBtn:SetAttribute("KeepColor", true)
+		MenuThemeBtn.TextColor3 = Color3.fromRGB(10, 20, 12)
+	end
+	if MenuFontBtn then
+		MenuFontBtn:SetAttribute("KeepColor", true)
 	end
 end
 
@@ -1153,7 +1154,8 @@ local function makeTitle(parent, text)
 	local t = Instance.new("TextLabel")
 	t.Name = "Title"
 	t.Size = UDim2.new(1, 0, 0, 40)
-	t.BackgroundColor3 = getMenuTheme().Btn
+	t.BackgroundColor3 = getMenuTheme().Accent
+	t.BackgroundTransparency = 0.2
 	t.BorderSizePixel = 0
 	t.Text = "  " .. text
 	t.TextColor3 = getMenuTheme().Title
@@ -1311,10 +1313,122 @@ MenuFontBtn = CreateBtn(FullPanel, "LETRA MENÚ: " .. getMenuFont().Name, 492, C
 end)
 CreateBtn(FullPanel, "💾 Guardar Config", 532, Color3.fromRGB(48, 48, 54), function() SaveConfig(false) end)
 
+
+local function applyAggroLevel(idx, silent)
+	idx = math.clamp(tonumber(idx) or aggroIndex or 4, 1, #AGGRO_LEVELS)
+	aggroIndex = idx
+	local lv = AGGRO_LEVELS[idx]
+	Settings.AggroIndex = idx
+	Settings.FOV = lv.FOV
+	Settings.Smoothness = lv.Smooth
+	Settings.AimStrength = lv.Strength
+	Settings.MaxDistance = lv.MaxDist
+	Settings.HardSnap = lv.HardSnap
+	Settings.Humanize = math.clamp(lv.Smooth / 0.22, 0, 1)
+	if FOVCircle then pcall(function() FOVCircle.Radius = Settings.FOV end) end
+	if FOVBox2 then pcall(function() FOVBox2.Text = tostring(Settings.FOV) end) end
+	if AggroLabelBtn then
+		AggroLabelBtn.Text = "Preset: " .. lv.Name
+	end
+	if not silent then SaveConfig(true) end
+end
+
+local function makeSlider(parent, y, label, getValue, setValue, accent)
+	accent = accent or Color3.fromRGB(80, 220, 200)
+	local wrap = Instance.new("Frame")
+	wrap.Size = UDim2.new(1, -16, 0, 44)
+	wrap.Position = UDim2.fromOffset(10, y)
+	wrap.BackgroundTransparency = 1
+	wrap.Parent = parent
+
+	local lab = Instance.new("TextLabel")
+	lab.Size = UDim2.new(1, 0, 0, 16)
+	lab.BackgroundTransparency = 1
+	lab.TextXAlignment = Enum.TextXAlignment.Left
+	lab.Font = Enum.Font.GothamBold
+	lab.TextSize = 12
+	lab.TextColor3 = accent
+	lab.ZIndex = 6
+	lab.Parent = wrap
+
+	local track = Instance.new("Frame")
+	track.Size = UDim2.new(1, 0, 0, 4)
+	track.Position = UDim2.fromOffset(0, 28)
+	track.BackgroundColor3 = Color3.fromRGB(30, 40, 45)
+	track.BorderSizePixel = 0
+	track.ZIndex = 6
+	track.Parent = wrap
+	Instance.new("UICorner", track).CornerRadius = UDim.new(1, 0)
+
+	local fill = Instance.new("Frame")
+	fill.Size = UDim2.new(math.clamp(getValue(), 0, 1), 0, 1, 0)
+	fill.BackgroundColor3 = accent
+	fill.BorderSizePixel = 0
+	fill.ZIndex = 7
+	fill.Parent = track
+	Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
+
+	local knob = Instance.new("Frame")
+	knob.AnchorPoint = Vector2.new(0.5, 0.5)
+	knob.Size = UDim2.fromOffset(14, 14)
+	knob.Position = UDim2.new(math.clamp(getValue(), 0, 1), 0, 0.5, 0)
+	knob.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+	knob.BorderSizePixel = 0
+	knob.ZIndex = 8
+	knob.Parent = track
+	Instance.new("UICorner", knob).CornerRadius = UDim.new(1, 0)
+
+	local function refresh()
+		local v = math.clamp(getValue(), 0, 1)
+		fill.Size = UDim2.new(v, 0, 1, 0)
+		knob.Position = UDim2.new(v, 0, 0.5, 0)
+		lab.Text = string.format("%s: %d%%", label, math.floor(v * 100 + 0.5))
+	end
+	refresh()
+
+	local dragging = false
+	local function setFromX(x)
+		local abs = track.AbsolutePosition.X
+		local size = track.AbsoluteSize.X
+		if size <= 1 then return end
+		local v = math.clamp((x - abs) / size, 0, 1)
+		setValue(v)
+		refresh()
+	end
+
+	track.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+			setFromX(input.Position.X)
+		end
+	end)
+	knob.InputBegan:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			dragging = true
+		end
+	end)
+	UserInputService.InputChanged:Connect(function(input)
+		if not dragging then return end
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			setFromX(input.Position.X)
+		end
+	end)
+	UserInputService.InputEnded:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+			if dragging then
+				dragging = false
+				SaveConfig(true)
+			end
+		end
+	end)
+
+	return refresh
+end
+
 ------------------------------------------------------------------
 -- P = Aimbot (Tiempo de Alternar + Super Jump)
 ------------------------------------------------------------------
-AimPanel = makePanel(480)
+AimPanel = makePanel(600)
 makeTitle(AimPanel, "4KT SCRIPT — Aimbot (P)")
 
 AimModeBtn = CreateBtn(AimPanel, "Modo Aimbot: " .. (AIM_MODE_LABELS[Settings.AimMode] or Settings.AimMode), 48, Color3.fromRGB(52, 52, 58), function()
@@ -1344,23 +1458,46 @@ FOVBox2.Parent = AimPanel
 Instance.new("UICorner", FOVBox2).CornerRadius = UDim.new(0,8)
 FOVBox2.FocusLost:Connect(function()
 	local n = tonumber(FOVBox2.Text)
-	if n and n > 20 and n < 900 then
+	if n and n > 20 and n < 2500 then
 		Settings.FOV = n
 		if FOVCircle then pcall(function() FOVCircle.Radius = n end) end
 	else FOVBox2.Text = tostring(Settings.FOV) end
 end)
 
-toggleBtn(AimPanel, 130, "NoRecoilEnabled", "No Recoil : ON", "No Recoil : OFF", onC, offC, function()
+-- Sliders estilo Strength / Humanize
+local refreshStrengthSlider = makeSlider(AimPanel, 122, "Strength", function()
+	return math.clamp(Settings.AimStrength or 0.9, 0, 1)
+end, function(v)
+	Settings.AimStrength = math.clamp(v, 0.05, 1)
+	Settings.HardSnap = Settings.AimStrength >= 0.95 and (Settings.Humanize or 0) < 0.15
+end, Color3.fromRGB(80, 230, 210))
+
+local refreshHumanizeSlider = makeSlider(AimPanel, 172, "Humanize", function()
+	return math.clamp(Settings.Humanize or 0, 0, 1)
+end, function(v)
+	Settings.Humanize = math.clamp(v, 0, 1)
+	-- Humanize alto = más suave (menos descarado)
+	Settings.Smoothness = 0.01 + Settings.Humanize * 0.22
+	Settings.HardSnap = Settings.AimStrength >= 0.95 and Settings.Humanize < 0.15
+end, Color3.fromRGB(80, 230, 210))
+
+AggroLabelBtn = CreateBtn(AimPanel, "Preset: " .. (AGGRO_LEVELS[aggroIndex] and AGGRO_LEVELS[aggroIndex].Name or "RAGE"), 222, Color3.fromRGB(40, 80, 90), function()
+	applyAggroLevel((aggroIndex % #AGGRO_LEVELS) + 1, false)
+	if refreshStrengthSlider then refreshStrengthSlider() end
+	if refreshHumanizeSlider then refreshHumanizeSlider() end
+end)
+
+toggleBtn(AimPanel, 266, "NoRecoilEnabled", "No Recoil : ON", "No Recoil : OFF", onC, offC, function()
 	SaveConfig(true)
 end)
-toggleBtn(AimPanel, 170, "PredictionEnabled", "Predicción RPG : ON", "Predicción RPG : OFF", onC, offC, function()
+toggleBtn(AimPanel, 310, "PredictionEnabled", "Predicción RPG : ON", "Predicción RPG : OFF", onC, offC, function()
 	SaveConfig(true)
 end)
-toggleBtn(AimPanel, 210, "AlternateAim", "Alternar Pecho / Cabeza : ON", "Alternar Pecho / Cabeza : OFF", onC, offC)
-toggleBtn(AimPanel, 250, "SuperJumpEnabled", "Super Jump : ON", "Super Jump : OFF", onC, offC, function()
+toggleBtn(AimPanel, 354, "AlternateAim", "Alternar Pecho / Cabeza : ON", "Alternar Pecho / Cabeza : OFF", onC, offC)
+toggleBtn(AimPanel, 398, "SuperJumpEnabled", "Super Jump : ON", "Super Jump : OFF", onC, offC, function()
 	SaveConfig(true)
 end)
-toggleBtn(AimPanel, 290, "ItemAuraEnabled", "Item Aura : ON", "Item Aura : OFF", onC, offC, function()
+toggleBtn(AimPanel, 442, "ItemAuraEnabled", "Item Aura : ON", "Item Aura : OFF", onC, offC, function()
 	SaveConfig(true)
 	if not Settings.ItemAuraEnabled then
 		for _, conn in pairs(ItemAuraConnections) do
@@ -1369,10 +1506,11 @@ toggleBtn(AimPanel, 290, "ItemAuraEnabled", "Item Aura : ON", "Item Aura : OFF",
 		ItemAuraConnections = {}
 	end
 end)
-toggleBtn(AimPanel, 330, "HideNameEnabled", "Hide Name : ON", "Hide Name : OFF", onC, offC, function()
+toggleBtn(AimPanel, 486, "HideNameEnabled", "Hide Name : ON", "Hide Name : OFF", onC, offC, function()
 	SaveConfig(true)
 end)
-CreateBtn(AimPanel, "Macro Reset [M]", 370, Color3.fromRGB(50, 50, 54), function() runResetMacro() end)
+CreateBtn(AimPanel, "Macro Reset [M]", 530, Color3.fromRGB(50, 50, 54), function() runResetMacro() end)
+pcall(function() applyAggroLevel(aggroIndex, true) end)
 
 ------------------------------------------------------------------
 -- H = ESP (todo lo visual)
@@ -1923,107 +2061,144 @@ do
 	pcall(function() pick.Parent = LocalPlayer:WaitForChild("PlayerGui", 3) end)
 	if not pick.Parent then pcall(function() pick.Parent = CoreGui end) end
 
+	-- Fondo estilo neon azul (como la foto, pero azul)
 	local bg = Instance.new("Frame")
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color3.fromRGB(8, 8, 12)
-	bg.BackgroundTransparency = 0.25
+	bg.BackgroundColor3 = Color3.fromRGB(2, 8, 22)
 	bg.BorderSizePixel = 0
 	bg.Parent = pick
 
-	local card = Instance.new("Frame")
-	card.AnchorPoint = Vector2.new(0.5, 0.5)
-	card.Position = UDim2.fromScale(0.5, 0.5)
-	card.Size = UDim2.fromOffset(380, 280)
-	card.BackgroundColor3 = Color3.fromRGB(16, 16, 22)
-	card.BorderSizePixel = 0
-	card.Parent = bg
-	Instance.new("UICorner", card).CornerRadius = UDim.new(0, 20)
-	local cardStroke = Instance.new("UIStroke")
-	cardStroke.Color = Color3.fromRGB(70, 70, 90)
-	cardStroke.Thickness = 1.5
-	cardStroke.Transparency = 0.3
-	cardStroke.Parent = card
+	local glow = Instance.new("Frame")
+	glow.AnchorPoint = Vector2.new(0.5, 0.5)
+	glow.Position = UDim2.fromScale(0.5, 0.45)
+	glow.Size = UDim2.fromOffset(520, 520)
+	glow.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+	glow.BackgroundTransparency = 0.88
+	glow.BorderSizePixel = 0
+	glow.Parent = bg
+	Instance.new("UICorner", glow).CornerRadius = UDim.new(1, 0)
 
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, -24, 0, 36)
-	title.Position = UDim2.fromOffset(12, 14)
-	title.BackgroundTransparency = 1
-	title.Text = "4KT ON TOP"
-	title.TextColor3 = Color3.fromRGB(255, 255, 255)
-	title.Font = Enum.Font.GothamBlack
-	title.TextSize = 22
-	title.Parent = card
+	-- Marca grande al centro (antes JCM SHOP → 4KT ON TOP)
+	local brand = Instance.new("TextLabel")
+	brand.AnchorPoint = Vector2.new(0.5, 0.5)
+	brand.Position = UDim2.fromScale(0.5, 0.38)
+	brand.Size = UDim2.new(0.9, 0, 0, 70)
+	brand.BackgroundTransparency = 1
+	brand.Text = "4KT ON TOP"
+	brand.TextColor3 = Color3.fromRGB(80, 170, 255)
+	brand.TextTransparency = 0.15
+	brand.Font = Enum.Font.GothamBlack
+	brand.TextSize = 42
+	brand.Parent = bg
+	local brandStroke = Instance.new("UIStroke")
+	brandStroke.Color = Color3.fromRGB(0, 80, 200)
+	brandStroke.Thickness = 1.2
+	brandStroke.Transparency = 0.4
+	brandStroke.Parent = brand
 
-	local sub = Instance.new("TextLabel")
-	sub.Size = UDim2.new(1, -24, 0, 22)
-	sub.Position = UDim2.fromOffset(12, 48)
-	sub.BackgroundTransparency = 1
-	sub.Text = "Elige cómo quieres usar el script"
-	sub.TextColor3 = Color3.fromRGB(160, 165, 180)
-	sub.Font = Enum.Font.Gotham
-	sub.TextSize = 13
-	sub.Parent = card
+	local subBrand = Instance.new("TextLabel")
+	subBrand.AnchorPoint = Vector2.new(0.5, 0)
+	subBrand.Position = UDim2.new(0.5, 0, 0.38, 28)
+	subBrand.Size = UDim2.new(0.8, 0, 0, 22)
+	subBrand.BackgroundTransparency = 1
+	subBrand.Text = "4KT  •  VERSIÓN"
+	subBrand.TextColor3 = Color3.fromRGB(100, 180, 255)
+	subBrand.Font = Enum.Font.GothamBold
+	subBrand.TextSize = 12
+	subBrand.Parent = bg
 
-	local function makeDeviceCard(label, imageId, color, x)
-		local holder = Instance.new("TextButton")
-		holder.Size = UDim2.fromOffset(150, 160)
-		holder.Position = UDim2.fromOffset(x, 90)
-		holder.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
-		holder.BorderSizePixel = 0
-		holder.Text = ""
-		holder.AutoButtonColor = false
-		holder.Parent = card
-		Instance.new("UICorner", holder).CornerRadius = UDim.new(0, 16)
+	local hint = Instance.new("TextLabel")
+	hint.AnchorPoint = Vector2.new(0.5, 0)
+	hint.Position = UDim2.new(0.5, 0, 0.48, 0)
+	hint.Size = UDim2.new(0.85, 0, 0, 20)
+	hint.BackgroundTransparency = 1
+	hint.Text = "Elige modo"
+	hint.TextColor3 = Color3.fromRGB(140, 190, 255)
+	hint.Font = Enum.Font.Gotham
+	hint.TextSize = 13
+	hint.Parent = bg
+
+	local function makeModeBtn(title, desc, side)
+		local btn = Instance.new("TextButton")
+		btn.AnchorPoint = Vector2.new(0.5, 0.5)
+		btn.Size = UDim2.fromOffset(150, 70)
+		if side == "left" then
+			btn.Position = UDim2.new(0.5, -100, 0.58, 0)
+		else
+			btn.Position = UDim2.new(0.5, 100, 0.58, 0)
+		end
+		btn.BackgroundColor3 = Color3.fromRGB(8, 20, 45)
+		btn.BackgroundTransparency = 0.25
+		btn.BorderSizePixel = 0
+		btn.Text = ""
+		btn.AutoButtonColor = false
+		btn.Parent = bg
+		Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 12)
 		local st = Instance.new("UIStroke")
-		st.Color = color
-		st.Thickness = 2
-		st.Transparency = 0.35
-		st.Parent = holder
+		st.Color = Color3.fromRGB(50, 140, 255)
+		st.Thickness = 1.5
+		st.Transparency = 0.25
+		st.Parent = btn
 
-		local img = Instance.new("ImageLabel")
-		img.Size = UDim2.fromOffset(72, 72)
-		img.Position = UDim2.new(0.5, -36, 0, 22)
-		img.BackgroundTransparency = 1
-		img.Image = imageId
-		img.ScaleType = Enum.ScaleType.Fit
-		img.Parent = holder
+		local t1 = Instance.new("TextLabel")
+		t1.Size = UDim2.new(1, -8, 0, 28)
+		t1.Position = UDim2.fromOffset(4, 12)
+		t1.BackgroundTransparency = 1
+		t1.Text = title
+		t1.TextColor3 = Color3.fromRGB(200, 230, 255)
+		t1.Font = Enum.Font.GothamBlack
+		t1.TextSize = 18
+		t1.Parent = btn
 
-		local txt = Instance.new("TextLabel")
-		txt.Size = UDim2.new(1, -10, 0, 28)
-		txt.Position = UDim2.new(0, 5, 1, -40)
-		txt.BackgroundTransparency = 1
-		txt.Text = label
-		txt.TextColor3 = Color3.fromRGB(240, 240, 245)
-		txt.Font = Enum.Font.GothamBold
-		txt.TextSize = 16
-		txt.Parent = holder
+		local t2 = Instance.new("TextLabel")
+		t2.Size = UDim2.new(1, -8, 0, 22)
+		t2.Position = UDim2.fromOffset(4, 38)
+		t2.BackgroundTransparency = 1
+		t2.Text = desc
+		t2.TextColor3 = Color3.fromRGB(120, 170, 230)
+		t2.Font = Enum.Font.Gotham
+		t2.TextSize = 11
+		t2.Parent = btn
 
-		holder.MouseEnter:Connect(function()
+		btn.MouseEnter:Connect(function()
+			st.Color = Color3.fromRGB(100, 190, 255)
 			st.Transparency = 0
-			holder.BackgroundColor3 = Color3.fromRGB(32, 32, 44)
+			btn.BackgroundTransparency = 0.1
 		end)
-		holder.MouseLeave:Connect(function()
-			st.Transparency = 0.35
-			holder.BackgroundColor3 = Color3.fromRGB(24, 24, 32)
+		btn.MouseLeave:Connect(function()
+			st.Color = Color3.fromRGB(50, 140, 255)
+			st.Transparency = 0.25
+			btn.BackgroundTransparency = 0.25
 		end)
-
-		return holder
+		return btn
 	end
 
-	-- Iconos oficiales-ish de Roblox (monitor / teléfono)
-	local pcBtn = makeDeviceCard("PC", "rbxassetid://6034837797", Color3.fromRGB(70, 140, 255), 28)
-	local mobBtn = makeDeviceCard("Celular", "rbxassetid://6034281891", Color3.fromRGB(60, 200, 100), 202)
+	-- LIGHT = Celular | NORMAL = PC (como la foto)
+	local lightBtn = makeModeBtn("LIGHT", "Celular • más FPS", "left")
+	local normalBtn = makeModeBtn("NORMAL", "PC • max visual", "right")
+
+	local footer = Instance.new("TextLabel")
+	footer.AnchorPoint = Vector2.new(0.5, 1)
+	footer.Position = UDim2.new(0.5, 0, 1, -18)
+	footer.Size = UDim2.new(0.9, 0, 0, 20)
+	footer.BackgroundTransparency = 1
+	footer.Text = "4KT ON TOP"
+	footer.TextColor3 = Color3.fromRGB(40, 100, 200)
+	footer.Font = Enum.Font.GothamBold
+	footer.TextSize = 12
+	footer.Parent = bg
 
 	local chosen = false
 	local function finish(mode)
 		if chosen then return end
 		chosen = true
+		pcall(playMenuSound)
 		applyDeviceMode(mode)
 		pcall(function() pick:Destroy() end)
 	end
 
-	pcBtn.MouseButton1Click:Connect(function() finish("PC") end)
-	mobBtn.MouseButton1Click:Connect(function() finish("Mobile") end)
+	lightBtn.MouseButton1Click:Connect(function() finish("Mobile") end)
+	normalBtn.MouseButton1Click:Connect(function() finish("PC") end)
 end
 
 
@@ -2121,7 +2296,7 @@ local function GetClosestPlayer()
 	local localPos = LocalRoot and LocalRoot.Position or Camera.CFrame.Position
 	local inVehicle = isLocalInVehicle()
 	-- Sticky: mira no se despega hasta soltar aim
-	local stickyMul = (StickyAimOn and 99) or (inVehicle and 4.5 or 3.2)
+	local stickyMul = (StickyAimOn or isAimActive()) and 999 or (inVehicle and 8 or 5)
 
 	if LockedTargetPart and LockedTargetPart.Parent and LockedTargetPlayer and LockedTargetPlayer.Parent then
 		if IsAlive(LockedTargetPlayer) and not IsFriend(LockedTargetPlayer) then
@@ -2136,7 +2311,7 @@ local function GetClosestPlayer()
 							LockedTargetPart = part
 							return part, LockedTargetPlayer
 						end
-					elseif worldDist < 400 then
+					elseif worldDist < 2000 then
 						LockedTargetPart = part
 						return part, LockedTargetPlayer
 					end
@@ -3125,15 +3300,18 @@ RunService.RenderStepped:Connect(function(dt)
 	end
 
 	local goal = CFrame.lookAt(Camera.CFrame.Position, aimPos)
-	-- Aimbot descarado: lock fuerte (casi instantáneo)
-	local smooth = math.clamp(Settings.Smoothness or 0.01, 0.001, 0.4)
-	local strength = math.clamp(Settings.AimStrength or 1, 0.3, 1)
-	local alpha = math.clamp((1 - smooth) * strength, 0.5, 1)
-	if Settings.VehicleAimEnabled and mySitting then
-		Camera.CFrame = goal -- carro: snap total
-	elseif alpha >= 0.98 then
-		Camera.CFrame = goal -- pie: snap si fuerza máxima
+	local humanize = math.clamp(Settings.Humanize or 0, 0, 1)
+	local strength = math.clamp(Settings.AimStrength or 0.9, 0.05, 1)
+	if (Settings.HardSnap or humanize < 0.05) and strength >= 0.95 then
+		Camera.CFrame = goal
 	else
+		local smooth = math.clamp((Settings.Smoothness or 0.08) + humanize * 0.05, 0.001, 0.55)
+		local alpha = math.clamp((1 - smooth) * strength, 0.06, 0.99)
+		-- humanize: pequeña variación para menos robot
+		if humanize > 0.2 then
+			alpha = alpha * (0.92 + math.sin(os.clock() * 9) * 0.08 * humanize)
+			alpha = math.clamp(alpha, 0.05, 0.98)
+		end
 		Camera.CFrame = Camera.CFrame:Lerp(goal, alpha)
 	end
 end)
@@ -3266,400 +3444,7 @@ pcall(function()
 end)
 
 
-------------------------------------------------------------------
--- OVERHEAD VISUAL "4KT On top" (etiqueta neón sobre tu personaje)
-------------------------------------------------------------------
-do
-	local Player = LocalPlayer
-	local PlayerGui = Player:WaitForChild("PlayerGui", 5)
-
-	local sharedState = _G
-	pcall(function()
-		if type(getgenv) == "function" then sharedState = getgenv() end
-	end)
-	if type(sharedState.CUSTOM_CELESTIAL_CLEANUP) == "function" then
-		pcall(sharedState.CUSTOM_CELESTIAL_CLEANUP)
-	end
-
-	if Player.Character then
-		local oldTag = Player.Character:FindFirstChild("CUSTOM_OVERHEAD_TAG", true)
-		if oldTag then oldTag:Destroy() end
-	end
-
-	local COLOR = {
-		Night = Color3.fromRGB(14, 9, 31),
-		DarkViolet = Color3.fromRGB(35, 13, 58),
-		Purple = Color3.fromRGB(161, 64, 255),
-		Pink = Color3.fromRGB(248, 63, 220),
-		Cyan = Color3.fromRGB(85, 229, 255),
-		Ice = Color3.fromRGB(219, 245, 255),
-		White = Color3.fromRGB(251, 246, 255),
-		Dim = Color3.fromRGB(169, 167, 201)
-	}
-
-	local alive = true
-	local enabled = true
-	local sizePercent = 26
-	local currentTag = nil
-	local currentHumanoid = nil
-	local lastNameDistance = setmetatable({}, {__mode = "k"})
-	local visualConnection = nil
-	local globalConnections = {}
-	local nameWatch = nil
-
-	local function track(connection)
-		globalConnections[#globalConnections + 1] = connection
-		return connection
-	end
-
-	local function make(className, parent, props)
-		local obj = Instance.new(className)
-		for property, value in pairs(props or {}) do
-			obj[property] = value
-		end
-		obj.Parent = parent
-		return obj
-	end
-
-	local function rounded(parent, radius)
-		return make("UICorner", parent, {CornerRadius = UDim.new(0, radius)})
-	end
-
-	local function stroke(parent, color, thickness, alpha)
-		return make("UIStroke", parent, {
-			Color = color,
-			Thickness = thickness,
-			Transparency = alpha,
-			ApplyStrokeMode = Enum.ApplyStrokeMode.Border
-		})
-	end
-
-	local function circle(parent, size, color, transparency)
-		local part = make("Frame", parent, {
-			Size = UDim2.fromOffset(size, size),
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			BackgroundColor3 = color,
-			BackgroundTransparency = transparency or 0,
-			BorderSizePixel = 0
-		})
-		make("UICorner", part, {CornerRadius = UDim.new(1, 0)})
-		return part
-	end
-
-	local function restoreName(humanoid)
-		if not humanoid then return end
-		local previous = lastNameDistance[humanoid]
-		if previous ~= nil then
-			pcall(function() humanoid.NameDisplayDistance = previous end)
-			lastNameDistance[humanoid] = nil
-		end
-	end
-
-	local function hideName(humanoid)
-		if not humanoid then return end
-		if lastNameDistance[humanoid] == nil then
-			lastNameDistance[humanoid] = humanoid.NameDisplayDistance
-		end
-		pcall(function() humanoid.NameDisplayDistance = 0 end)
-	end
-
-	local function removeVisual()
-		if visualConnection then
-			visualConnection:Disconnect()
-			visualConnection = nil
-		end
-		if currentTag then
-			currentTag:Destroy()
-			currentTag = nil
-		end
-		if currentHumanoid then
-			restoreName(currentHumanoid)
-			currentHumanoid = nil
-		end
-	end
-
-	local function makeLabel(parent, text, size, font, color, position, dimensions, z)
-		return make("TextLabel", parent, {
-			Name = "Label",
-			Text = text,
-			Font = font,
-			TextColor3 = color,
-			TextSize = size,
-			TextScaled = false,
-			TextWrapped = false,
-			BackgroundTransparency = 1,
-			TextXAlignment = Enum.TextXAlignment.Center,
-			TextYAlignment = Enum.TextYAlignment.Center,
-			Position = position,
-			Size = dimensions,
-			ZIndex = z or 1
-		})
-	end
-
-	local function createOverhead(rootPart, head)
-		local headRise = math.clamp(head.Position.Y - rootPart.Position.Y, 1.3, 3.4)
-		local fixedHeight = headRise + (1.95 + 1.20 * (sizePercent / 100))
-
-		local tag = make("BillboardGui", rootPart, {
-			Name = "CUSTOM_OVERHEAD_TAG",
-			Adornee = rootPart,
-			AlwaysOnTop = true,
-			LightInfluence = 0,
-			MaxDistance = 185,
-			ResetOnSpawn = false,
-			StudsOffsetWorldSpace = Vector3.new(0, fixedHeight, 0),
-			Size = UDim2.fromOffset(410, 145)
-		})
-
-		local root = make("Frame", tag, {
-			Name = "EffectCanvas",
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromScale(0.5, 0.5),
-			BackgroundTransparency = 1,
-			Size = UDim2.fromOffset(410, 145),
-			ClipsDescendants = false
-		})
-
-		make("UIScale", root, { Scale = sizePercent / 100 })
-
-		local haze = make("Frame", root, {
-			Position = UDim2.fromOffset(18, 38),
-			Size = UDim2.fromOffset(374, 83),
-			BackgroundColor3 = COLOR.Purple,
-			BackgroundTransparency = 0.94,
-			BorderSizePixel = 0,
-			ZIndex = 1
-		})
-		rounded(haze, 20)
-
-		local halo = make("Frame", root, {
-			Position = UDim2.fromOffset(26, 43),
-			Size = UDim2.fromOffset(358, 72),
-			BackgroundColor3 = COLOR.Pink,
-			BackgroundTransparency = 0.95,
-			BorderSizePixel = 0,
-			ZIndex = 2
-		})
-		rounded(halo, 17)
-
-		local plate = make("Frame", root, {
-			Position = UDim2.fromOffset(29, 46),
-			Size = UDim2.fromOffset(352, 66),
-			BackgroundColor3 = COLOR.Night,
-			BackgroundTransparency = 0.56,
-			BorderSizePixel = 0,
-			ZIndex = 3
-		})
-		rounded(plate, 16)
-
-		local edge = stroke(plate, COLOR.Purple, 1.8, 0.33)
-		local edgeGradient = make("UIGradient", edge, {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, COLOR.Cyan),
-				ColorSequenceKeypoint.new(0.31, COLOR.Purple),
-				ColorSequenceKeypoint.new(0.64, COLOR.Pink),
-				ColorSequenceKeypoint.new(1, COLOR.Cyan)
-			}),
-			Rotation = 0
-		})
-
-		local topLight = make("Frame", root, {
-			Position = UDim2.fromOffset(83, 44),
-			Size = UDim2.fromOffset(244, 2),
-			BackgroundColor3 = COLOR.Cyan,
-			BackgroundTransparency = 0.65,
-			BorderSizePixel = 0,
-			ZIndex = 6
-		})
-		rounded(topLight, 2)
-
-		local lowLight = make("Frame", root, {
-			Position = UDim2.fromOffset(136, 112),
-			Size = UDim2.fromOffset(138, 2),
-			BackgroundColor3 = COLOR.Pink,
-			BackgroundTransparency = 0.68,
-			BorderSizePixel = 0,
-			ZIndex = 6
-		})
-		rounded(lowLight, 2)
-
-		local crestBase = make("Frame", root, {
-			AnchorPoint = Vector2.new(0.5, 0.5),
-			Position = UDim2.fromOffset(205, 25),
-			Size = UDim2.fromOffset(148, 23),
-			BackgroundColor3 = COLOR.DarkViolet,
-			BackgroundTransparency = 0.52,
-			BorderSizePixel = 0,
-			ZIndex = 8
-		})
-		rounded(crestBase, 9)
-		stroke(crestBase, COLOR.Cyan, 1.25, 0.32)
-		makeLabel(crestBase, "4KT // GANG", 11, Enum.Font.GothamBold, COLOR.Ice, UDim2.fromScale(0, 0), UDim2.fromScale(1, 1), 9)
-
-		local textArea = UDim2.fromOffset(352, 40)
-		local shadowA = makeLabel(root, "4KT On top", 30, Enum.Font.GothamBlack, COLOR.Pink, UDim2.fromOffset(31, 60), textArea, 7)
-		shadowA.TextTransparency = 0.86
-
-		local shadowB = makeLabel(root, "4KT On top", 30, Enum.Font.GothamBlack, COLOR.Cyan, UDim2.fromOffset(27, 58), textArea, 7)
-		shadowB.TextTransparency = 0.89
-
-		local mainText = makeLabel(root, "4KT On top", 30, Enum.Font.GothamBlack, COLOR.White, UDim2.fromOffset(29, 59), textArea, 10)
-		mainText.TextTransparency = 0.15
-		mainText.TextStrokeColor3 = COLOR.DarkViolet
-		mainText.TextStrokeTransparency = 0.62
-
-		local textGradient = make("UIGradient", mainText, {
-			Color = ColorSequence.new({
-				ColorSequenceKeypoint.new(0, COLOR.Purple),
-				ColorSequenceKeypoint.new(0.25, COLOR.Ice),
-				ColorSequenceKeypoint.new(0.5, COLOR.White),
-				ColorSequenceKeypoint.new(0.72, COLOR.Pink),
-				ColorSequenceKeypoint.new(1, COLOR.Cyan)
-			}),
-			Rotation = 5
-		})
-
-		local scannerMask = make("Frame", plate, {
-			Position = UDim2.fromOffset(12, 3),
-			Size = UDim2.fromOffset(328, 60),
-			BackgroundTransparency = 1,
-			ClipsDescendants = true,
-			ZIndex = 11
-		})
-		local scanner = make("Frame", scannerMask, {
-			Position = UDim2.fromOffset(-40, 0),
-			Size = UDim2.fromOffset(26, 60),
-			BackgroundColor3 = COLOR.White,
-			BackgroundTransparency = 0.94,
-			Rotation = 14,
-			BorderSizePixel = 0,
-			ZIndex = 11
-		})
-		make("UIGradient", scanner, {
-			Transparency = NumberSequence.new({
-				NumberSequenceKeypoint.new(0, 1),
-				NumberSequenceKeypoint.new(0.48, 0.28),
-				NumberSequenceKeypoint.new(1, 1)
-			})
-		})
-
-		local diamonds = {}
-		for i = 1, 4 do
-			local diamond = make("Frame", root, {
-				Size = UDim2.fromOffset(9, 9),
-				AnchorPoint = Vector2.new(0.5, 0.5),
-				BackgroundColor3 = i % 2 == 0 and COLOR.Cyan or COLOR.Pink,
-				BackgroundTransparency = 0.44,
-				BorderSizePixel = 0,
-				Rotation = 45,
-				ZIndex = 8
-			})
-			stroke(diamond, COLOR.White, 0.6, 0.53)
-			diamonds[#diamonds + 1] = diamond
-		end
-
-		local particles = {}
-		for i = 1, 14 do
-			local particle = circle(root, (i % 3) + 2, i % 3 == 0 and COLOR.Cyan or (i % 2 == 0 and COLOR.Pink or COLOR.Purple), 0.51)
-			particle.ZIndex = 8
-			particles[#particles + 1] = particle
-		end
-
-		local orbitCenter = Vector2.new(205, 79)
-		local startingTime = os.clock()
-		local acc = 0
-
-		visualConnection = RunService.Heartbeat:Connect(function(dt)
-			if not alive or not enabled or not tag.Parent then
-				if visualConnection then visualConnection:Disconnect() end
-				return
-			end
-			acc = acc + dt
-			if acc < (1 / 24) then return end
-			acc = 0
-
-			local tt = os.clock() - startingTime
-			edgeGradient.Rotation = (tt * 27) % 360
-			textGradient.Offset = Vector2.new(math.sin(tt * 0.78) * 0.3, 0)
-			edge.Transparency = 0.35 + 0.21 * (0.5 + 0.5 * math.sin(tt * 2.0))
-			haze.BackgroundTransparency = 0.93 + 0.05 * (0.5 + 0.5 * math.sin(tt * 2.2))
-			halo.BackgroundTransparency = 0.94 + 0.05 * (0.5 + 0.5 * math.sin(tt * 1.7))
-			topLight.BackgroundTransparency = 0.65 + 0.20 * (0.5 + 0.5 * math.sin(tt * 2.4))
-			lowLight.BackgroundTransparency = 0.66 + 0.20 * (0.5 + 0.5 * math.sin(tt * 3.1))
-			scanner.Position = UDim2.fromOffset(-40 + (tt * 84) % 408, 0)
-
-			for i, diamond in ipairs(diamonds) do
-				local a = tt * 0.76 + (i - 1) * math.pi / 2
-				local rx = 190 * math.cos(a)
-				local ry = 51 * math.sin(a)
-				diamond.Position = UDim2.fromOffset(orbitCenter.X + rx, orbitCenter.Y + ry)
-				diamond.Rotation = 45 + (tt * 92) % 360
-				diamond.BackgroundTransparency = 0.43 + 0.35 * (0.5 + 0.5 * math.sin(tt * 3 + i))
-			end
-
-			for i, particle in ipairs(particles) do
-				local speed = 0.34 + (i % 4) * 0.14
-				local a = tt * speed + (i * 2.39996)
-				local rx = (180 + (i % 3) * 13) * math.cos(a)
-				local ry = (39 + (i % 5) * 8) * math.sin(a * 1.37)
-				particle.Position = UDim2.fromOffset(orbitCenter.X + rx, orbitCenter.Y + ry - math.sin(tt * 1.1 + i) * 9)
-				particle.BackgroundTransparency = 0.55 + 0.40 * (0.5 + 0.5 * math.sin(tt * 2.9 + i * 1.65))
-			end
-		end)
-
-		return tag
-	end
-
-	local function installOnCharacter(character)
-		if not alive or character ~= Player.Character then return end
-		local head = character:FindFirstChild("Head") or character:WaitForChild("Head", 12)
-		local rootPart = character:FindFirstChild("HumanoidRootPart") or character:WaitForChild("HumanoidRootPart", 12)
-		local hum = character:FindFirstChildOfClass("Humanoid") or character:WaitForChild("Humanoid", 12)
-
-		if not alive or character ~= Player.Character then return end
-		if not head or not hum or not rootPart then return end
-
-		if nameWatch then nameWatch:Disconnect(); nameWatch = nil end
-		removeVisual()
-		currentHumanoid = hum
-		hideName(hum)
-
-		nameWatch = hum:GetPropertyChangedSignal("NameDisplayDistance"):Connect(function()
-			if alive and currentHumanoid == hum and hum.NameDisplayDistance ~= 0 then
-				hideName(hum)
-			end
-		end)
-
-		currentTag = createOverhead(rootPart, head)
-	end
-
-	local function cleanup()
-		if not alive then return end
-		alive = false
-		enabled = false
-		if nameWatch then nameWatch:Disconnect(); nameWatch = nil end
-		removeVisual()
-		for _, connection in ipairs(globalConnections) do
-			pcall(function() connection:Disconnect() end)
-		end
-		if sharedState.CUSTOM_CELESTIAL_CLEANUP == cleanup then
-			sharedState.CUSTOM_CELESTIAL_CLEANUP = nil
-		end
-	end
-
-	sharedState.CUSTOM_CELESTIAL_CLEANUP = cleanup
-
-	track(Player.CharacterAdded:Connect(function(character)
-		task.spawn(installOnCharacter, character)
-	end))
-
-	if Player.Character then
-		task.spawn(installOnCharacter, Player.Character)
-	end
-end
-
-
-
+-- (overhead visual removido: limite de locals Luau)
 
 ------------------------------------------------------------------
 -- NOMBRE LOCAL "4KT" (solo se ve en tu cliente)
@@ -3698,384 +3483,4 @@ LocalPlayer.CharacterAdded:Connect(function(char)
 end)
 
 
-------------------------------------------------------------------
--- ITEM AURA (recolecta items cerca — estilo Neverman)
-------------------------------------------------------------------
-ItemAuraConnections = ItemAuraConnections or {}
-local ItemAuraCounter = nil
-pcall(function()
-	for _, v in ipairs(getgc(true)) do
-		if typeof(v) == "table" and rawget(v, "event") and rawget(v, "func") then
-			ItemAuraCounter = v
-			break
-		end
-	end
-end)
-
-local function itemAuraNetGet(...)
-	if not ItemAuraCounter then return end
-	ItemAuraCounter.func = (ItemAuraCounter.func or 0) + 1
-	local getRemote = ReplicatedStorage:FindFirstChild("Remotes") and ReplicatedStorage.Remotes:FindFirstChild("Get")
-	if not getRemote then return end
-	return getRemote:InvokeServer(ItemAuraCounter.func, ...)
-end
-
-task.spawn(function()
-	while true do
-		task.wait(0.12)
-		if not Settings.ItemAuraEnabled then
-			continue
-		end
-		local Character = LocalPlayer.Character
-		if not Character then continue end
-		local hrp = Character:FindFirstChild("HumanoidRootPart")
-		if not hrp then continue end
-		local DroppedItems = workspace:FindFirstChild("DroppedItems")
-		if not DroppedItems then continue end
-		for _, Item in next, DroppedItems:GetChildren() do
-			if Item:IsA("Model") then
-				local okPos, ItemPosition = pcall(function() return Item:GetPivot().Position end)
-				if not okPos then continue end
-				if (ItemPosition - hrp.Position).Magnitude < 30 then
-					task.spawn(function()
-						pcall(itemAuraNetGet, "pickup_dropped_item", Item)
-					end)
-					if not ItemAuraConnections[Item] then
-						local Connection
-						Connection = RunService.Heartbeat:Connect(function()
-							if not Settings.ItemAuraEnabled or not Item or not Item.Parent then
-								if Connection then Connection:Disconnect() end
-								ItemAuraConnections[Item] = nil
-								return
-							end
-							local zone = Item:FindFirstChild("PickUpZone")
-							local root = Character and Character:FindFirstChild("HumanoidRootPart")
-							if not zone or not root then
-								if Connection then Connection:Disconnect() end
-								ItemAuraConnections[Item] = nil
-								return
-							end
-							pcall(function()
-								firetouchinterest(zone, root, 1)
-								firetouchinterest(zone, root, 0)
-							end)
-						end)
-						ItemAuraConnections[Item] = Connection
-					end
-				end
-			end
-		end
-	end
-end)
-
-
-------------------------------------------------------------------
--- HIDE NAME (oculta tu nombre sobre el personaje)
-------------------------------------------------------------------
-local function hideMyName()
-	if not Settings.HideNameEnabled then return end
-	local character = LocalPlayer.Character
-	if not character then return end
-	local humanoid = character:FindFirstChildOfClass("Humanoid")
-	if humanoid then
-		pcall(function()
-			humanoid.DisplayDistanceType = Enum.HumanoidDisplayDistanceType.None
-			humanoid.NameDisplayDistance = 0
-			humanoid.HealthDisplayDistance = 0
-		end)
-	end
-	for _, v in pairs(character:GetDescendants()) do
-		if v:IsA("BillboardGui") then
-			-- no tocar tags del script 4KT
-			if v.Name == "FourKT_WeaponIcon" or (v.Name and tostring(v.Name):find("FourKT")) then
-				continue
-			end
-			pcall(function() v.Enabled = false end)
-		end
-	end
-end
-
-RunService.Heartbeat:Connect(function()
-	if Settings.HideNameEnabled then
-		hideMyName()
-	end
-end)
-
-
-------------------------------------------------------------------
--- CONTADOR DE DAÑO (arriba centro) + TIEMPO DE KEY
-------------------------------------------------------------------
-do
-	local DamageTotal = 0
-	local LastHitName = ""
-	local HealthCache = {}
-	local LastHitClock = 0
-	local RESET_AFTER = 2.5
-	local genv = (getgenv and getgenv()) or _G
-
-	local dmgGui = Instance.new("ScreenGui")
-	dmgGui.Name = "FourKT_DamageHUD"
-	dmgGui.ResetOnSpawn = false
-	dmgGui.IgnoreGuiInset = true
-	dmgGui.DisplayOrder = 100010
-	pcall(function()
-		dmgGui.Parent = LocalPlayer:WaitForChild("PlayerGui", 3) or CoreGui
-	end)
-	if not dmgGui.Parent then
-		pcall(function() dmgGui.Parent = CoreGui end)
-	end
-
-	-- Tiempo de key (arriba centro, encima del daño)
-	local keyFrame = Instance.new("Frame")
-	keyFrame.AnchorPoint = Vector2.new(0.5, 0)
-	keyFrame.Size = UDim2.fromOffset(200, 22)
-	keyFrame.Position = UDim2.new(0.5, 0, 0, 8)
-	keyFrame.BackgroundColor3 = Color3.fromRGB(18, 10, 28)
-	keyFrame.BackgroundTransparency = 0.25
-	keyFrame.BorderSizePixel = 0
-	keyFrame.Parent = dmgGui
-	Instance.new("UICorner", keyFrame).CornerRadius = UDim.new(0, 8)
-	local keyStroke = Instance.new("UIStroke")
-	keyStroke.Color = Color3.fromRGB(140, 70, 220)
-	keyStroke.Thickness = 1
-	keyStroke.Parent = keyFrame
-
-	local keyLab = Instance.new("TextLabel")
-	keyLab.Size = UDim2.fromScale(1, 1)
-	keyLab.BackgroundTransparency = 1
-	keyLab.Text = "KEY: ..."
-	keyLab.TextColor3 = Color3.fromRGB(200, 180, 255)
-	keyLab.Font = Enum.Font.GothamBold
-	keyLab.TextSize = 12
-	keyLab.Parent = keyFrame
-
-	local function formatRemain(sec)
-		if sec <= 0 then return "EXPIRADA" end
-		local d = math.floor(sec / 86400)
-		local h = math.floor((sec % 86400) / 3600)
-		local m = math.floor((sec % 3600) / 60)
-		local s = math.floor(sec % 60)
-		if d > 30 then return "PERMANENTE" end
-		if d > 0 then return string.format("%dd %02dh %02dm", d, h, m) end
-		if h > 0 then return string.format("%02dh %02dm %02ds", h, m, s) end
-		return string.format("%02dm %02ds", m, s)
-	end
-
-	local function refreshKeyTime()
-		if genv.FourKT_KeyPermanent then
-			keyLab.Text = "KEY: PERMANENTE"
-			keyLab.TextColor3 = Color3.fromRGB(120, 255, 160)
-			return
-		end
-		local exp = genv.FourKT_KeyExp
-		if type(exp) ~= "number" then
-			keyLab.Text = "KEY: --"
-			return
-		end
-		local left = exp - os.time()
-		keyLab.Text = "KEY: " .. formatRemain(left)
-		if left <= 0 then
-			keyLab.TextColor3 = Color3.fromRGB(255, 80, 80)
-		elseif left < 300 then
-			keyLab.TextColor3 = Color3.fromRGB(255, 180, 80)
-		else
-			keyLab.TextColor3 = Color3.fromRGB(200, 180, 255)
-		end
-	end
-
-	-- Daño estilo golpe (solo número naranja, sin cuadro)
-	local frame = Instance.new("Frame")
-	frame.AnchorPoint = Vector2.new(0.5, 0.5)
-	frame.Size = UDim2.fromOffset(220, 70)
-	frame.Position = UDim2.new(0.5, 0, 0.42, 0) -- centro de la pantalla (zona marcada)
-	frame.BackgroundTransparency = 1
-	frame.BorderSizePixel = 0
-	frame.Parent = dmgGui
-
-	local valueLab = Instance.new("TextLabel")
-	valueLab.AnchorPoint = Vector2.new(0.5, 0)
-	valueLab.Size = UDim2.new(1, 0, 0, 42)
-	valueLab.Position = UDim2.new(0.5, 0, 0, 0)
-	valueLab.BackgroundTransparency = 1
-	valueLab.Text = "0"
-	valueLab.TextColor3 = Color3.fromRGB(255, 170, 40)
-	valueLab.Font = Enum.Font.GothamBlack
-	valueLab.TextSize = 40
-	valueLab.TextXAlignment = Enum.TextXAlignment.Center
-	valueLab.TextStrokeTransparency = 0.55
-	valueLab.TextStrokeColor3 = Color3.fromRGB(80, 40, 0)
-	valueLab.Parent = frame
-	-- degradado naranja como la foto
-	local grad = Instance.new("UIGradient")
-	grad.Color = ColorSequence.new({
-		ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 210, 60)),
-		ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 150, 30)),
-		ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 20)),
-	})
-	grad.Rotation = 90
-	grad.Parent = valueLab
-
-	local subLab = Instance.new("TextLabel")
-	subLab.AnchorPoint = Vector2.new(0.5, 0)
-	subLab.Size = UDim2.new(1, 0, 0, 18)
-	subLab.Position = UDim2.new(0.5, 0, 0, 44)
-	subLab.BackgroundTransparency = 1
-	subLab.Text = "GOLPE"
-	subLab.TextColor3 = Color3.fromRGB(255, 255, 255)
-	subLab.Font = Enum.Font.GothamBold
-	subLab.TextSize = 14
-	subLab.TextXAlignment = Enum.TextXAlignment.Center
-	subLab.TextStrokeTransparency = 0.5
-	subLab.TextStrokeColor3 = Color3.fromRGB(0, 0, 0)
-	subLab.Parent = frame
-
-	local function refreshHUD()
-		local n = math.floor(DamageTotal + 0.5)
-		valueLab.Text = tostring(n)
-		if n <= 0 then
-			subLab.Text = "GOLPE"
-		elseif LastHitName ~= "" then
-			subLab.Text = "GOLPE"
-		else
-			subLab.Text = "GOLPE"
-		end
-		frame.Visible = n > 0
-	end
-	frame.Visible = false
-
-	local function myPos()
-		local c = LocalPlayer.Character
-		local r = c and c:FindFirstChild("HumanoidRootPart")
-		return r and r.Position or nil
-	end
-
-	-- Número naranja flotante encima del enemigo (estilo GOLPE)
-	local function spawnFloatingDamage(character, amount)
-		if not character then return end
-		local hrp = character:FindFirstChild("HumanoidRootPart")
-		local head = character:FindFirstChild("Head")
-		local adornee = head or hrp
-		if not adornee then return end
-
-		local bill = Instance.new("BillboardGui")
-		bill.Name = "FourKT_FloatDmg"
-		bill.Adornee = adornee
-		bill.Size = UDim2.fromOffset(120, 70)
-		bill.StudsOffset = Vector3.new(0, 2.8, 0)
-		bill.AlwaysOnTop = true
-		bill.MaxDistance = 500
-		bill.Parent = dmgGui
-
-		local num = Instance.new("TextLabel")
-		num.Size = UDim2.new(1, 0, 0, 40)
-		num.BackgroundTransparency = 1
-		num.Text = tostring(math.floor(amount + 0.5))
-		num.TextColor3 = Color3.fromRGB(255, 170, 40)
-		num.Font = Enum.Font.GothamBlack
-		num.TextSize = 32
-		num.TextStrokeTransparency = 0.5
-		num.TextStrokeColor3 = Color3.fromRGB(80, 40, 0)
-		num.Parent = bill
-		local g = Instance.new("UIGradient")
-		g.Color = ColorSequence.new({
-			ColorSequenceKeypoint.new(0, Color3.fromRGB(255, 210, 60)),
-			ColorSequenceKeypoint.new(0.5, Color3.fromRGB(255, 150, 30)),
-			ColorSequenceKeypoint.new(1, Color3.fromRGB(255, 100, 20)),
-		})
-		g.Rotation = 90
-		g.Parent = num
-
-		local gol = Instance.new("TextLabel")
-		gol.Size = UDim2.new(1, 0, 0, 18)
-		gol.Position = UDim2.fromOffset(0, 38)
-		gol.BackgroundTransparency = 1
-		gol.Text = "GOLPE"
-		gol.TextColor3 = Color3.fromRGB(255, 255, 255)
-		gol.Font = Enum.Font.GothamBold
-		gol.TextSize = 13
-		gol.TextStrokeTransparency = 0.45
-		gol.Parent = bill
-
-		task.spawn(function()
-			local t0 = os.clock()
-			local dur = 0.45
-			while os.clock() - t0 < dur do
-				local a = (os.clock() - t0) / dur
-				bill.StudsOffset = Vector3.new(0, 2.8 + a * 1.2, 0)
-				num.TextTransparency = a * 0.9
-				gol.TextTransparency = a * 0.9
-				num.TextStrokeTransparency = 0.5 + a * 0.5
-				task.wait()
-			end
-			pcall(function() bill:Destroy() end)
-		end)
-	end
-
-	local _lastKeyRefresh = 0
-	RunService.Heartbeat:Connect(function()
-		local nowc = os.clock()
-		if nowc - _lastKeyRefresh >= 1 then
-			_lastKeyRefresh = nowc
-			refreshKeyTime()
-		end
-
-		if DamageTotal > 0 and (nowc - LastHitClock) > RESET_AFTER then
-			DamageTotal = 0
-			LastHitName = ""
-			refreshHUD()
-		end
-
-		local origin = myPos()
-		for _, pl in ipairs(Players:GetPlayers()) do
-			if pl == LocalPlayer then continue end
-			local char = pl.Character
-			local hum = char and char:FindFirstChildOfClass("Humanoid")
-			local hrp = char and char:FindFirstChild("HumanoidRootPart")
-			if not hum or not hrp or hum.Health <= 0 then
-				HealthCache[pl] = nil
-				continue
-			end
-			local hp = hum.Health
-			local prev = HealthCache[pl]
-			if prev and hp < prev then
-				local dmg = prev - hp
-				if dmg > 0.5 and dmg < 800 then
-					-- Solo daño que haces TÚ: aim activo + ese es tu target (o único en mira)
-					local myDamage = false
-					if isAimActive() and LockedTargetPlayer == pl then
-						myDamage = true
-					elseif isAimActive() and not LockedTargetPlayer then
-						-- sin lock sticky: solo si está cerca del centro del FOV
-						local center = Camera.ViewportSize / 2
-						local sp, on = Camera:WorldToViewportPoint(hrp.Position)
-						if on and sp.Z > 0 then
-							local sd = (Vector2.new(sp.X, sp.Y) - center).Magnitude
-							if sd <= (Settings.FOV or 200) * 0.85 then
-								local dist = origin and (hrp.Position - origin).Magnitude or 999
-								if dist < 350 then
-									myDamage = true
-								end
-							end
-						end
-					end
-					if myDamage then
-						DamageTotal += dmg
-						LastHitName = pl.DisplayName or pl.Name
-						LastHitClock = nowc
-						refreshHUD()
-						spawnFloatingDamage(char, dmg)
-					end
-				end
-			end
-			HealthCache[pl] = hp
-		end
-	end)
-
-	Players.PlayerRemoving:Connect(function(pl)
-		HealthCache[pl] = nil
-	end)
-
-	refreshKeyTime()
-end
-
-print("[4KT] predicción al piso lista")
+print("[4KT] listo")
